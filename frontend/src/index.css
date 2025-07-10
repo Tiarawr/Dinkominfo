@@ -8,5 +8,3 @@ body {
 html {
   scroll-behavior: smooth;
 }
-
-/* Error [ERR_MODULE_NOT_FOUND]: Cannot find package '@vitejs/plugin-react' */
