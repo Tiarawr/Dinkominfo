@@ -4,12 +4,12 @@ export default function Home() {
     return(
         <div className='flex flex-col min-h-screen bg-white pt-24'>
             {/* Hero Section */}
-            <div className="flex flex-col items-center justify-center text-center py-27">
+            <div className="flex flex-col items-center justify-center text-center py-25">
                 <h1 className="text-6xl font-semibold mb-8">
-                    Peka Membaca
+                    Dummy Judul
                 </h1>
                 <img 
-                    className='w-35 h-35 mb-8'
+                    className='w-45 h-45 mb-8'
                     src="https://cdn.pekalongankab.go.id/uploads/dinas_98e2f2b35f.ico" 
                     alt="Logo"
                 />
@@ -106,6 +106,14 @@ export default function Home() {
                     </div>
 
                 </div>
+            </div>
+            <div className="px-8 mb-8">
+                <h1 className='text-4xl font-semibold text-left mb-8'>
+                    Tentang Portal
+                </h1>
+                <p className='text-xl text-black mt-6 pr-24'>
+                    Dummy PKL adalah layanan dokumentasi dan publikasi digital resmi dari Dinas Komunikasi dan Informatika Kabupaten Pekalongan. Melalui portal ini, masyarakat dapat mengakses berbagai informasi dan laporan resmi dengan mudah dan cepat.
+                </p>
             </div>
         </div>
     )
