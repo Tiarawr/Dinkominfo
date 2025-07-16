@@ -1,6 +1,9 @@
 import React from "react";
 import Footer from "./components/Footer";
 import Header from "./components/Header";
+import feather from "feather-icons";
+import { useTheme } from "./components/ThemeSwitch";
+import ThemeToggle from "./components/ThemeToggle";
 
 const DataArtikel = [
   {
@@ -25,7 +28,7 @@ const DataArtikel = [
 
 export default function Home() {
   return (
-    <div className="flex flex-col min-h-screen bg-white pt-24">
+    <div className="flex flex-col min-h-screen bg-white pt-24 dark:bg-gray-900">
       <Header />
       {/* Hero Section */}
       <div className="flex flex-col items-center justify-center text-center py-25">

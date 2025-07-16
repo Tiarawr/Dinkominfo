@@ -6,10 +6,12 @@ import {
   useLocation,
 } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
-
 import Home from "./Home";
 import EKliping from "./ekliping";
 import EBook from "./ebook";
+import { ThemeProvider } from "./components/ThemeSwitch";
+import Header from "./components/Header";
+import Footer from "./components/Footer";
 
 function useScrollToTop() {
   const { pathname } = useLocation();
@@ -40,8 +42,10 @@ function AnimatedRoutes() {
 
 export default function App() {
   return (
-    <Router>
-      <AnimatedRoutes />
-    </Router>
+    <ThemeProvider>
+      <Router>
+        <AnimatedRoutes />
+      </Router>
+    </ThemeProvider>
   );
 }

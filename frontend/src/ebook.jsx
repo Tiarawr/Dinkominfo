@@ -1,6 +1,7 @@
 import React from "react";
 import Headers from "./components/Header";
 import Footer from "./components/Footer";
+import feather from "feather-icons";
 
 const DataArtikel = [
   {
