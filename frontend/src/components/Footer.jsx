@@ -3,7 +3,7 @@ import feather from "feather-icons";
 
 export default function Footer() {
   return (
-    <footer className="bg-white text-black py-6 mt-8">
+    <footer className="bg-white dark:bg-[#141624] dark:text-white text-black py-6 mt-8">
       <div className="container mx-auto px-4">
         <div className="flex flex-col lg:flex-row justify-between items-start gap-8">
           {/* Logo and About Section */}
@@ -72,7 +72,7 @@ export default function Footer() {
                     <span
                       dangerouslySetInnerHTML={{
                         __html: feather.icons.youtube.toSvg({
-                          class: "h-5 w-5 opacity-50 text-pink-500",
+                          class: "h-5 w-5 opacity-50 text-black dark:text-white",
                         }),
                       }}
                     />

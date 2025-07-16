@@ -9,6 +9,8 @@ import { AnimatePresence } from "framer-motion";
 import Home from "./Home";
 import EKliping from "./ekliping";
 import EBook from "./ebook";
+import Kontak from "./contact";
+import About from "./about";
 import { ThemeProvider } from "./components/ThemeSwitch";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
@@ -35,6 +37,8 @@ function AnimatedRoutes() {
         <Route path="/home" element={<Home />} />
         <Route path="/e-kliping" element={<EKliping />} />
         <Route path="/e-book" element={<EBook />} />
+        <Route path="/contact" element={<Kontak />} />
+        <Route path="/about" element={<About />} />
       </Routes>
     </AnimatePresence>
   );

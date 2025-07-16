@@ -26,33 +26,24 @@ const DataArtikel = [
 
 export default function EBook() {
   return (
-    <div className="flex flex-col min-h-screen bg-white pt-24">
+    <div className="flex flex-col min-h-screen bg-white dark:bg-[#181A2A] dark:text-white pt-24">
       <Headers />
       <div flex className="text-3xl text-center font-semibold mb-8 mt-8">
         <h1>Portal E-Book Resmi Kabupaten Pekalongan</h1>
       </div>
 
       <div className="flex justify-center items-center mb-8">
-        <label className="input bg-gray-200">
-          <svg
-            className="h-[1em] opacity-50"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-          >
-            <g
-              strokeLinejoin="round"
-              strokeLinecap="round"
-              strokeWidth="2.5"
-              fill="none"
-              stroke="currentColor"
-            >
-              <circle cx="11" cy="11" r="8"></circle>
-              <path d="m21 21-4.3-4.3"></path>
-            </g>
-          </svg>
+        <label className="input bg-pink-100 rounded-2xl">
+          <span
+            dangerouslySetInnerHTML={{
+              __html: feather.icons.search.toSvg({
+                class: "h-5 w-5 opacity-50 text-pink-500",
+              }),
+            }}
+          />
           <input
             type="search"
-            className="grow"
+            className="grow dark:text-black"
             placeholder="Cari berdasarkan judul atau kata kunci"
           />
         </label>
@@ -63,7 +54,7 @@ export default function EBook() {
             {DataArtikel.map((item, index) => (
               <div
                 key={index}
-                className="bg-white rounded-3xl shadow-lg border-2 border-gray-300 overflow-hidden"
+                className="bg-white dark:bg-[#141624] rounded-3xl shadow-lg border-2 border-gray-300 overflow-hidden"
               >
                 <img
                   className="w-full h-80 object-cover"
@@ -72,10 +63,10 @@ export default function EBook() {
                 />
                 <div className="p-5">
                   <h2 className="text-2xl font-bold">{item.title}</h2>
-                  <p className="text-gray-700 mb-4">{item.description}</p>
+                  <p className="text-black dark:text-white mb-4">{item.description}</p>
                   <a
                     href={item.link}
-                    className="btn btn-primary bg-blue-600 text-white px-4 py-2 rounded-md font-bold text-sm"
+                    className="btn btn-primary border-0 bg-blue-600 text-white px-4 py-2 rounded-md font-bold text-sm"
                   >
                     Baca Selengkapnya
                   </a>

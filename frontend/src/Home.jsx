@@ -28,10 +28,10 @@ const DataArtikel = [
 
 export default function Home() {
   return (
-    <div className="flex flex-col min-h-screen bg-white pt-24 dark:bg-gray-900">
+    <div className="flex flex-col min-h-screen bg-white pt-24 dark:bg-[#181A2A]">
       <Header />
       {/* Hero Section */}
-      <div className="flex flex-col items-center justify-center text-center py-25">
+      <div className="flex dark:text-white flex-col items-center justify-center text-center py-25">
         <h1 className="text-6xl font-semibold mb-8">Macapat Pekalongan</h1>
         <img
           className="w-45 h-45 mb-8"
@@ -45,7 +45,7 @@ export default function Home() {
           Akses Mudah ke Majalah, E-Book, dan Kliping Resmi Pemerintah Daerah
         </p>
         <a
-          className="btn btn-primary bg-[#b83e3e] text-amber-100 hover:text-pink-200 hover:bg-amber-100 text-lg font-semibold px-8 py-3 rounded-full"
+          className="btn btn-primary border-0 bg-[#b83e3e] text-white hover:text-white hover:bg-[#922e2e] text-lg font-semibold px-8 py-3 rounded-full"
           href="#"
         >
           Lihat Publikasi
@@ -61,7 +61,7 @@ export default function Home() {
           {DataArtikel.map((item, index) => (
             <div
               key={index}
-              className="bg-white rounded-3xl shadow-lg border-2 border-gray-300 overflow-hidden"
+              className="bg-white dark:bg-[#181A2A] rounded-3xl shadow-lg border-2 border-gray-300 overflow-hidden"
             >
               <img
                 className="w-full h-80 object-cover"
@@ -69,10 +69,10 @@ export default function Home() {
                 alt="Article"
               />
               <div className="p-5">
-                <h2 className="text-xl font-semibold text-black mb-4 leading-tight">
+                <h2 className="text-xl font-semibold text-black dark:text-white mb-4 leading-tight">
                   {item.title}
                 </h2>
-                <p className="text-base text-black mb-6 leading-relaxed">
+                <p className="text-base text-black dark:text-white mb-6 leading-relaxed">
                   {item.description}
                 </p>
                 <div className="flex justify-between items-center">
@@ -82,7 +82,7 @@ export default function Home() {
                   >
                     Artikel
                   </a>
-                  <span className="text-black font-bold text-lg">
+                  <span className="text-black dark:text-white font-bold text-lg">
                     10 Juni 2025
                   </span>
                 </div>
@@ -92,10 +92,10 @@ export default function Home() {
         </div>
       </div>
       <div className="px-8 mb-8">
-        <h1 className="text-4xl font-semibold text-left mb-8">
+        <h1 className="text-4xl dark:text-white text-black font-semibold text-left mb-8">
           Tentang Portal
         </h1>
-        <p className="text-xl text-black mt-6 pr-24">
+        <p className="text-xl dark:text-white text-black mt-6 pr-24">
           Dummy PKL adalah layanan dokumentasi dan publikasi digital resmi dari
           Dinas Komunikasi dan Informatika Kabupaten Pekalongan. Melalui portal
           ini, masyarakat dapat mengakses berbagai informasi dan laporan resmi

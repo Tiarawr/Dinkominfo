@@ -22,7 +22,7 @@ export default function Header() {
   };
 
   return (
-    <header className="min-h-16 top-0 left-0 z-40 w-full fixed bg-white/80 dark:bg-gray-900/80 shadow-sticky backdrop-blur-sm animate-in slide-in-from-top-6 transition duration-500 ease-in-out">
+    <header className="min-h-16 top-0 left-0 z-40 w-full fixed bg-white/80 dark:bg-[#141624] shadow-sticky backdrop-blur-sm animate-in slide-in-from-top-6 transition duration-500 ease-in-out">
       <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
           {/* Logo */}
@@ -50,18 +50,12 @@ export default function Header() {
             <Link to="/e-kliping" className={linkClass("/e-kliping")}>
               E-Kliping
             </Link>
-            <a
-              href="#"
-              className="text-gray-900 dark:text-gray-100 text-base font-semibold hover:text-[hsl(221.2,83.2%,53.3%)] transition-colors"
-            >
+            <Link to="/about" className={linkClass("/about")}>
               Tentang
-            </a>
-            <a
-              href="https://dinkominfo.pekalongankab.go.id/kontak"
-              className="text-gray-900 dark:text-gray-100 text-base font-semibold hover:text-[hsl(221.2,83.2%,53.3%)] transition-colors"
-            >
+            </Link>
+            <Link to="/contact" className={linkClass("/kontak")}>
               Kontak
-            </a>
+            </Link>
           </nav>
 
           {/* Desktop Theme Toggle & Mobile Menu Button */}

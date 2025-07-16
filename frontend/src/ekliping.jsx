@@ -25,10 +25,10 @@ const DataArtikel = [
 
 export default function Ekliping() {
   return (
-    <div className="flex flex-col min-h-screen bg-white pt-24">
+    <div className="flex flex-col min-h-screen bg-white dark:bg-[#181A2A] dark:text-white pt-24">
       <Headers />
       <div flex className="text-3xl text-center font-semibold mb-8 mt-8">
-        <h1>Portal E-Book Resmi Kabupaten Pekalongan</h1>
+        <h1>Portal E-Kliping Resmi Kabupaten Pekalongan</h1>
       </div>
 
       <div className="flex justify-center items-center mb-8">
@@ -42,7 +42,7 @@ export default function Ekliping() {
           />
           <input
             type="search"
-            className="grow"
+            className="grow dark:text-black"
             placeholder="Cari berdasarkan judul atau kata kunci"
           />
         </label>
@@ -53,7 +53,7 @@ export default function Ekliping() {
             {DataArtikel.map((item, index) => (
               <div
                 key={index}
-                className="bg-white rounded-3xl shadow-lg border-2 border-gray-300 overflow-hidden"
+                className="bg-white dark:bg-[#141624] rounded-3xl shadow-lg border-2 border-gray-300 overflow-hidden"
               >
                 <img
                   className="w-full h-80 object-cover"
@@ -62,10 +62,10 @@ export default function Ekliping() {
                 />
                 <div className="p-5">
                   <h2 className="text-2xl font-bold">{item.title}</h2>
-                  <p className="text-gray-700 mb-4">{item.description}</p>
+                  <p className="text-gray-700 dark:text-white mb-4">{item.description}</p>
                   <a
                     href={item.link}
-                    className="btn btn-primary bg-blue-600 text-white px-4 py-2 rounded-md font-bold text-sm"
+                    className="btn btn-primary border-0 bg-blue-600 text-white px-4 py-2 rounded-md font-bold text-sm"
                   >
                     Baca Selengkapnya
                   </a>
