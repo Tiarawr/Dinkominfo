@@ -16,6 +16,7 @@ import Header from "./components/Header";
 import Footer from "./components/Footer";
 import Dashboard from "./dashboard";
 import LoginPage from "./Login";
+import Isiebook from "./IsiArtikel";
 
 function useScrollToTop() {
   const { pathname } = useLocation();
@@ -43,6 +44,7 @@ function AnimatedRoutes() {
         <Route path="/about" element={<About />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/isiebook/:id" element={<Isiebook />} />
       </Routes>
     </AnimatePresence>
   );
