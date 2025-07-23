@@ -1,6 +1,8 @@
 import Headers from "./components/Header";
 import Footer from "./components/Footer";
 import feather from "feather-icons";
+import React from "react";
+import Pagination from "./components/Pagination";
 
 const DataArtikel = [
   {
@@ -62,7 +64,10 @@ export default function Ekliping() {
                 />
                 <div className="p-5">
                   <h2 className="text-2xl font-bold">{item.title}</h2>
-                  <p className="text-gray-700 dark:text-white mb-4">{item.description}</p>
+
+                  <p className="text-gray-700 dark:text-white mb-4">
+                    {item.description}
+                  </p>
                   <a
                     href={item.link}
                     className="btn btn-primary border-0 bg-blue-600 text-white px-4 py-2 rounded-md font-bold text-sm"
@@ -75,6 +80,9 @@ export default function Ekliping() {
           </div>
         </section>
       </main>
+      <div>
+        <Pagination />
+      </div>
       <Footer />
     </div>
   );

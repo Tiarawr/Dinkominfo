@@ -9,20 +9,28 @@ const DataArtikel = [
   {
     title: "Artikel 1",
     description: "Deskripsi singkat tentang artikel 1.",
-    image: "https://via.placeholder.com/150",
+    image:
+      "https://images.unsplash.com/photo-1752939124510-e444139e6404?q=80&w=2018&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     link: "#",
+    date: "2025-05-05",
+    category: "Teknologi",
   },
   {
     title: "Artikel 2",
     description: "Deskripsi singkat tentang artikel 2.",
-    image: "https://via.placeholder.com/150",
+    image:
+      "https://images.unsplash.com/photo-1752986002031-579569bd3d6d?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     link: "#",
+    date: "2025-05-05",
+    category: "Teknologi",
   },
   {
     title: "Artikel 3",
     description: "Deskripsi singkat tentang artikel 3.",
-    image: "https://via.placeholder.com/150",
+    image: "",
     link: "#",
+    date: "2025-05-05",
+    category: "Teknologi",
   },
 ];
 
@@ -54,7 +62,7 @@ export default function Home() {
 
       {/* Publications Section */}
       <div className="px-8 mb-8">
-        <h1 className="text-4xl font-semibold text-left mb-8">
+        <h1 className="text-4xl text-black dark:text-white hover:text-pink-400 font-semibold text-left mb-8">
           Publikasi Unggulan
         </h1>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -83,7 +91,7 @@ export default function Home() {
                     Artikel
                   </a>
                   <span className="text-black dark:text-white font-bold text-lg">
-                    10 Juni 2025
+                    {item.date}
                   </span>
                 </div>
               </div>

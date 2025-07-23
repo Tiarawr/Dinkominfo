@@ -22,7 +22,7 @@ export default function Header() {
   };
 
   return (
-    <header className="min-h-16 top-0 left-0 z-40 w-full fixed bg-white/80 dark:bg-[#141624] shadow-sticky backdrop-blur-sm animate-in slide-in-from-top-6 transition duration-500 ease-in-out">
+    <header className="min-h-16 top-0 left-0 z-40 w-full fixed bg-white/80 dark:bg-[#141624]/80 shadow-sticky backdrop-blur-sm animate-in slide-in-from-top-6 transition duration-500 ease-in-out">
       <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
           {/* Logo */}

@@ -14,6 +14,8 @@ import About from "./about";
 import { ThemeProvider } from "./components/ThemeSwitch";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
+import Dashboard from "./dashboard";
+import LoginPage from "./Login";
 
 function useScrollToTop() {
   const { pathname } = useLocation();
@@ -39,6 +41,8 @@ function AnimatedRoutes() {
         <Route path="/e-book" element={<EBook />} />
         <Route path="/contact" element={<Kontak />} />
         <Route path="/about" element={<About />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/login" element={<LoginPage />} />
       </Routes>
     </AnimatePresence>
   );
