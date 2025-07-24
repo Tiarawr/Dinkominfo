@@ -24,9 +24,14 @@
   --border: 240 5.9% 90%;
 }
 
+html,
 body {
-  font-family: "Figtree", sans-serif;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  overflow-y: scroll; /* tetap bisa scroll */
 }
-html {
-  scroll-behavior: smooth;
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none; /* Chrome dan Safari */
 }

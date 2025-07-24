@@ -1,9 +1,6 @@
 import React from "react";
 import Footer from "./components/Footer";
 import Header from "./components/Header";
-import feather from "feather-icons";
-import { useTheme } from "./components/ThemeSwitch";
-import ThemeToggle from "./components/ThemeToggle";
 
 const DataArtikel = [
   {
@@ -44,7 +41,7 @@ const Blob = ({ className, style }) => (
 
 export default function Home() {
   return (
-    <div className="flex flex-col min-h-screen bg-white pt-24 dark:bg-[#181A2A]">
+    <div className="flex flex-col overflow-auto min-h-screen scrollbar-hidden bg-white pt-24 dark:bg-[#181A2A]">
       <Header />
 
       {/* Hero Section with Blobs */}
