@@ -9,6 +9,27 @@ use App\Models\Article;
 
 class EKlipingController extends Controller
 {
+
+    public function index(Request $request)
+    {
+        try {
+            $ekliping = Article::where('type', 'e-kliping')
+                ->whereNotNull('published_at')
+                ->orderBy('published_at', 'desc')
+                ->paginate($request->get('per_page', 10));
+
+            return response()->json([
+                'success' => true,
+                'data' => $ekliping
+            ]);
+        } catch (\Exception $e){
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengambil data E-Kliping',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
     // POST - create e-kliping
     public function store(Request $request)
     {
@@ -18,7 +39,9 @@ class EKlipingController extends Controller
                 'description' => 'required|string',
                 'content' => 'required|string',
                 'image' => 'nullable|url',
-                'published_at' => 'nullable|date'
+                'published_at' => 'nullable|date',
+                'author' => 'required|string|max:255',
+                'reading_time' => 'nullable|integer'
             ]);
 
             $validated['type'] = 'e-kliping';

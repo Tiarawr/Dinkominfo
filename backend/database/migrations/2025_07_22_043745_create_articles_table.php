@@ -1,47 +1,37 @@
 <?php
 
-namespace App\Models;
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Str;
-
-class Article extends Model
+return new class extends Migration
 {
-    protected $fillable = [
-        'title', 'description', 'content', 'image', 
-        'slug', 'type', 'is_featured', 'published_at'
-    ];
-
-    protected $casts = [
-        'published_at' => 'datetime',
-        'is_featured' => 'boolean'
-    ];
-
-    // Auto generate slug dari title
-    protected static function boot()
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
     {
-        parent::boot();
-        
-        static::creating(function ($article) {
-            $article->slug = Str::slug($article->title);
+        Schema::create('articles', function (Blueprint $table) {
+            $table->id();
+            $table->string('title');
+            $table->text('description')->nullable();
+            $table->longText('content');
+            $table->string('image')->nullable();
+            $table->string('slug')->unique();
+            $table->enum('type', ['e-book', 'e-kliping', 'article'])->default('article');
+            $table->boolean('is_featured')->default(false);
+            $table->timestamp('published_at')->nullable();
+            $table->string('author')->nullable();
+            $table->integer('reading_time')->nullable(); // in minutes
+            $table->timestamps();
         });
     }
 
-    // Scope untuk filter berdasarkan type
-    public function scopeEBook($query)
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
     {
-        return $query->where('type', 'e-book');
+        Schema::dropIfExists('articles');
     }
-
-    public function scopePublished($query)
-    {
-        return $query->whereNotNull('published_at')
-                    ->where('published_at', '<=', now());
-    }
-
-    // Format tanggal Indonesia
-    public function getFormattedDateAttribute()
-    {
-        return $this->published_at ? $this->published_at->format('d M Y') : null;
-    }
-}
+};

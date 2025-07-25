@@ -3,13 +3,16 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Str;
 
 class Article extends Model
 {
+    use HasFactory;
     protected $fillable = [
         'title', 'description', 'content', 'image', 
-        'slug', 'type', 'is_featured', 'published_at'
+        'slug', 'type', 'is_featured', 'published_at',
+        'author', 'reading_time'
     ];
 
     protected $casts = [

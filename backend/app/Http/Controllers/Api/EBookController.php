@@ -9,8 +9,26 @@ use Illuminate\Support\Str;
 
 class EBookController extends Controller
 {
-    // ... method index() dan show() yang sudah ada ...
+    public function index(Request $request)
+    {
+        try {
+            $ebook = Article::where('type', 'e-book')
+                ->whereNotNull('published_at')
+                ->orderBy('published_at', 'desc')
+                ->paginate($request->get('per_page', 10));
 
+            return response()->json([
+                'success' => true,
+                'data' => $ebook
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengambil data E-Book',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
     /**
      * POST - Create e-book baru
      */
@@ -23,7 +41,9 @@ class EBookController extends Controller
                 'description' => 'required|string',
                 'content' => 'required|string',
                 'image' => 'nullable|url',
-                'published_at' => 'nullable|date'
+                'published_at' => 'nullable|date',
+                'author' => 'required|string|max:255',
+                'reading_time' => 'nullable|integer'
             ]);
 
             // Tambah data default
