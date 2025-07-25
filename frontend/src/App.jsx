@@ -7,8 +7,7 @@ import {
 } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import Home from "./Home";
-import EKliping from "./ekliping";
-import EBook from "./ebook";
+import PerpustakaanApp from "./Perpustakaan";
 import Kontak from "./contact";
 import About from "./about";
 import { ThemeProvider } from "./components/ThemeSwitch";
@@ -16,7 +15,8 @@ import Header from "./components/Header";
 import Footer from "./components/Footer";
 import Dashboard from "./dashboard";
 import LoginPage from "./Login";
-
+import IsiEbook from "./components/IsiEbook";
+import IsiEkliping from "./components/IsiEkliping";
 function useScrollToTop() {
   const { pathname } = useLocation();
 
@@ -37,12 +37,13 @@ function AnimatedRoutes() {
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<Home />} />
         <Route path="/home" element={<Home />} />
-        <Route path="/e-kliping" element={<EKliping />} />
-        <Route path="/e-book" element={<EBook />} />
+        <Route path="/perpustakaan" element={<PerpustakaanApp />} />
         <Route path="/contact" element={<Kontak />} />
         <Route path="/about" element={<About />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/e-book" element={<IsiEbook />} />
+        <Route path="/e-kliping" element={<IsiEkliping />} />
       </Routes>
     </AnimatePresence>
   );

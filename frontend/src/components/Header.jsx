@@ -44,11 +44,8 @@ export default function Header() {
             <Link to="/" className={linkClass("/")}>
               Beranda
             </Link>
-            <Link to="/e-book" className={linkClass("/e-book")}>
-              E-Book
-            </Link>
-            <Link to="/e-kliping" className={linkClass("/e-kliping")}>
-              E-Kliping
+            <Link to="/perpustakaan" className={linkClass("/perpustakaan")}>
+              Perpustakaan{" "}
             </Link>
             <Link to="/about" className={linkClass("/about")}>
               Tentang
@@ -117,18 +114,11 @@ export default function Header() {
               Beranda
             </Link>
             <Link
-              to="/e-book"
-              className={linkClass("/e-book")}
+              to="/perpustakaan"
+              className={linkClass("/perpustakaan")}
               onClick={() => setIsMenuOpen(false)}
             >
-              E-Book
-            </Link>
-            <Link
-              to="/e-kliping"
-              className={linkClass("/e-kliping")}
-              onClick={() => setIsMenuOpen(false)}
-            >
-              E-Kliping
+              Perpustakaan{" "}
             </Link>
             <a
               href="#"

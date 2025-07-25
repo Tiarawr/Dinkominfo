@@ -1,9 +1,6 @@
 import React from "react";
 import Footer from "./components/Footer";
 import Header from "./components/Header";
-import feather from "feather-icons";
-import { useTheme } from "./components/ThemeSwitch";
-import ThemeToggle from "./components/ThemeToggle";
 
 const DataArtikel = [
   {
@@ -34,30 +31,84 @@ const DataArtikel = [
   },
 ];
 
+// Blob component
+const Blob = ({ className, style }) => (
+  <div
+    className={`absolute rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob ${className}`}
+    style={style}
+  />
+);
+
 export default function Home() {
   return (
-    <div className="flex flex-col min-h-screen bg-white pt-24 dark:bg-[#181A2A]">
+    <div className="flex flex-col overflow-auto min-h-screen scrollbar-hidden bg-white pt-24 dark:bg-[#181A2A]">
       <Header />
-      {/* Hero Section */}
-      <div className="flex dark:text-white flex-col items-center justify-center text-center py-25">
-        <h1 className="text-6xl font-semibold mb-8">Macapat Pekalongan</h1>
-        <img
-          className="w-45 h-45 mb-8"
-          src="https://cdn.pekalongankab.go.id/uploads/dinas_98e2f2b35f.ico"
-          alt="Logo"
+
+      {/* Hero Section with Blobs */}
+      <div className="relative flex dark:text-white flex-col items-center justify-center text-center py-25 overflow-hidden">
+        {/* Animated Blobs Background */}
+        <Blob
+          className="bg-blue-300 dark:bg-blue-600"
+          style={{
+            top: "10%",
+            left: "10%",
+            width: "300px",
+            height: "300px",
+            animationDelay: "0s",
+          }}
         />
-        <h3 className="text-2xl font-semibold text-center mb-4">
-          Portal Informasi Publik Kabupaten Pekalongan
-        </h3>
-        <p className="text-lg text-center mb-8">
-          Akses Mudah ke Majalah, E-Book, dan Kliping Resmi Pemerintah Daerah
-        </p>
-        <a
-          className="btn btn-primary border-0 bg-[#b83e3e] text-white hover:text-white hover:bg-[#922e2e] text-lg font-semibold px-8 py-3 rounded-full"
-          href="#"
-        >
-          Lihat Publikasi
-        </a>
+        <Blob
+          className="bg-blue-400 dark:bg-blue-500"
+          style={{
+            top: "20%",
+            right: "10%",
+            width: "250px",
+            height: "250px",
+            animationDelay: "2s",
+          }}
+        />
+        <Blob
+          className="bg-blue-200 dark:bg-blue-700"
+          style={{
+            bottom: "10%",
+            left: "20%",
+            width: "200px",
+            height: "200px",
+            animationDelay: "4s",
+          }}
+        />
+        <Blob
+          className="bg-blue-500 dark:bg-blue-400"
+          style={{
+            bottom: "20%",
+            right: "20%",
+            width: "280px",
+            height: "280px",
+            animationDelay: "6s",
+          }}
+        />
+
+        {/* Hero Content - Logo tetap di tengah */}
+        <div className="relative z-10 flex flex-col items-center">
+          <h1 className="text-6xl font-semibold mb-8">Macapat Pekalongan</h1>
+          <img
+            className="w-45 h-45 mb-8 mx-auto"
+            src="https://cdn.pekalongankab.go.id/uploads/dinas_98e2f2b35f.ico"
+            alt="Logo"
+          />
+          <h3 className="text-2xl font-semibold text-center mb-4">
+            Portal Informasi Publik Kabupaten Pekalongan
+          </h3>
+          <p className="text-lg text-center mb-8">
+            Akses Mudah ke Majalah, E-Book, dan Kliping Resmi Pemerintah Daerah
+          </p>
+          <a
+            className="btn btn-primary border-0 bg-[#b83e3e] text-white hover:text-white hover:bg-[#922e2e] text-lg font-semibold px-8 py-3 rounded-full transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl"
+            href="#"
+          >
+            Lihat Publikasi
+          </a>
+        </div>
       </div>
 
       {/* Publications Section */}
@@ -111,6 +162,26 @@ export default function Home() {
         </p>
       </div>
       <Footer />
+
+      <style jsx>{`
+        @keyframes blob {
+          0% {
+            transform: translate(0px, 0px) scale(1);
+          }
+          33% {
+            transform: translate(30px, -50px) scale(1.1);
+          }
+          66% {
+            transform: translate(-20px, 20px) scale(0.9);
+          }
+          100% {
+            transform: translate(0px, 0px) scale(1);
+          }
+        }
+        .animate-blob {
+          animation: blob 7s infinite;
+        }
+      `}</style>
     </div>
   );
 }
