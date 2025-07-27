@@ -13,12 +13,9 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            'name' => 'Test User',
-            'username' => 'admin',
-            'password' => bcrypt('password123'), // Set a known password
+        $this->call([
+            UserSeeder::class,
+            ArticleSeeder::class,
         ]);
     }
 }

@@ -25,212 +25,64 @@ import Footer from "./components/Footer";
 import IsiEbook from "./components/IsiEbook";
 import IsiEkliping from "./components/IsiEkliping";
 
-// Sample cover images for demo
-const sampleCovers = {
-  ebook1:
-    "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=600&fit=crop",
-  ebook2:
-    "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=600&fit=crop",
-  ebook3:
-    "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&h=600&fit=crop",
-  ekliping1:
-    "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=400&h=600&fit=crop",
-  ekliping2:
-    "https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=400&h=600&fit=crop",
-  ekliping3:
-    "https://images.unsplash.com/photo-1432888622747-4eb9a8efeb07?w=400&h=600&fit=crop",
-};
+// API Base URL
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api";
 
 // Component untuk halaman E-Book utama
 function PerpustakaanPage({ onViewContent }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [items, setItems] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Load data dari state (simulasi localStorage)
+  // Load data dari backend API
   useEffect(() => {
-    // Simulasi data untuk demo dengan cover images
-    const demoItems = [
-      {
-        id: 1,
-        title: "Panduan Lengkap React untuk Pemula",
-        author: "John Doe",
-        description:
-          "Buku komprehensif untuk mempelajari React dari dasar hingga mahir. Cocok untuk developer yang ingin menguasai library JavaScript populer ini.",
-        category: "e-book",
-        timestamp: Date.now() - 86400000,
-        readTime: "2 jam",
-        createdBy: "Admin Perpustakaan",
-        coverImage: sampleCovers.ebook1,
-        content: `**Bab 1: Pengenalan React**
+    const fetchArticles = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await fetch(`${API_BASE_URL}/articles`, {
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
 
-React adalah library JavaScript yang dikembangkan oleh Facebook untuk membangun user interface yang interaktif. Library ini menggunakan konsep component-based architecture yang memungkinkan developer untuk membangun aplikasi web yang kompleks dengan cara yang lebih terstruktur dan mudah dipelihara.
+        if (response.ok) {
+          const data = await response.json();
+          const articles = data.data || [];
+          
+          // Transform data untuk kompatibilitas dengan UI
+          const transformedArticles = articles.map(article => ({
+            ...article,
+            timestamp: new Date(article.created_at).getTime(),
+            readTime: `${Math.ceil((article.content?.length || 1000) / 200)} menit`,
+            author: article.author || article.created_by || "Penulis Tidak Diketahui",
+            coverImage: article.image_url || getDefaultImage(article.category),
+            createdBy: article.created_by || "Administrator"
+          }));
+          
+          setItems(transformedArticles);
+        } else {
+          console.error("Failed to fetch articles");
+        }
+      } catch (error) {
+        console.error("Error fetching articles:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-**Fitur Utama React:**
-• Virtual DOM untuk performa yang optimal
-• Component-based architecture
-• Unidirectional data flow
-• JSX syntax yang mudah dipahami
-• Rich ecosystem dan community support
-
-**Mengapa Memilih React?**
-
-React telah menjadi pilihan utama banyak developer karena kemudahan penggunaannya dan performa yang excellent. Dengan React, Anda dapat membangun aplikasi web modern yang responsive dan user-friendly.
-
-**Memulai dengan React**
-
-Untuk memulai belajar React, Anda perlu memahami konsep dasar JavaScript terlebih dahulu. Setelah itu, Anda dapat mulai mempelajari JSX, komponen, props, dan state management.`,
-      },
-      {
-        id: 2,
-        title: "Perkembangan AI di Indonesia Tahun 2024",
-        author: "Tech News Indonesia",
-        description:
-          "Kumpulan berita dan analisis tentang perkembangan kecerdasan buatan di Indonesia sepanjang tahun 2024.",
-        category: "e-kliping",
-        timestamp: Date.now() - 43200000,
-        readTime: "15 menit",
-        createdBy: "Editor Teknologi",
-        coverImage: sampleCovers.ekliping1,
-        content: `**Pertumbuhan Pesat AI di Indonesia**
-
-Tahun 2024 menjadi tahun yang sangat penting bagi perkembangan kecerdasan buatan (AI) di Indonesia. Berbagai sektor mulai mengadopsi teknologi AI untuk meningkatkan efisiensi dan produktivitas.
-
-**Sektor yang Mengadopsi AI:**
-1. Perbankan - Untuk deteksi fraud dan customer service
-2. Healthcare - Diagnosa medis dan telemedicine
-3. Pendidikan - Platform pembelajaran adaptif
-4. Transportasi - Sistem navigasi pintar
-
-**Tantangan dan Peluang**
-
-Meskipun perkembangannya pesat, Indonesia masih menghadapi beberapa tantangan dalam implementasi AI, termasuk ketersediaan SDM yang kompeten dan infrastruktur teknologi yang memadai.
-
-Namun, dengan dukungan pemerintah dan investasi swasta yang terus meningkat, masa depan AI di Indonesia terlihat sangat menjanjikan.
-
-**Dampak terhadap Ekonomi**
-
-Implementasi AI diperkirakan dapat meningkatkan GDP Indonesia hingga 15% dalam 10 tahun ke depan. Hal ini tentunya menjadi peluang besar bagi pengembangan ekonomi digital nasional.`,
-        sourceUrl: "https://technews.id/ai-indonesia-2024",
-      },
-      {
-        id: 3,
-        title: "Manajemen Keuangan untuk UMKM",
-        author: "Dr. Siti Rahayu",
-        description:
-          "Panduan praktis manajemen keuangan untuk usaha mikro, kecil, dan menengah di era digital.",
-        category: "e-book",
-        timestamp: Date.now() - 172800000,
-        readTime: "1.5 jam",
-        createdBy: "Admin Ekonomi",
-        coverImage: sampleCovers.ebook2,
-        content: `**Pentingnya Manajemen Keuangan untuk UMKM**
-
-Manajemen keuangan yang baik adalah kunci kesuksesan bagi setiap usaha, termasuk UMKM. Dengan pengelolaan keuangan yang tepat, UMKM dapat berkembang secara berkelanjutan dan menghadapi berbagai tantangan bisnis.
-
-**Prinsip Dasar Manajemen Keuangan UMKM:**
-• Pemisahan keuangan pribadi dan bisnis
-• Pencatatan yang rapi dan sistematis
-• Perencanaan cash flow yang realistis
-• Diversifikasi sumber pendapatan
-• Kontrol pengeluaran yang ketat
-
-**Tips Praktis:**
-
-1. **Gunakan Aplikasi Keuangan Digital** - Manfaatkan teknologi untuk memudahkan pencatatan dan monitoring keuangan.
-
-2. **Buat Budget Bulanan** - Rencanakan pendapatan dan pengeluaran setiap bulan dengan detail.
-
-3. **Siapkan Dana Darurat** - Sisihkan minimal 10% dari keuntungan untuk dana darurat bisnis.
-
-**Langkah-langkah Implementasi**
-
-Mulailah dengan langkah sederhana seperti mencatat semua transaksi harian, kemudian tingkatkan dengan menggunakan tools digital untuk analisis yang lebih mendalam.`,
-      },
-      {
-        id: 4,
-        title: "Tren Digital Marketing 2024",
-        author: "Marketing Today",
-        description:
-          "Analisis mendalam tentang tren pemasaran digital yang akan mendominasi tahun 2024.",
-        category: "e-kliping",
-        timestamp: Date.now() - 259200000,
-        readTime: "20 menit",
-        createdBy: "Tim Marketing",
-        coverImage: sampleCovers.ekliping2,
-        content: `**Revolusi Digital Marketing di 2024**
-
-Tahun 2024 membawa perubahan signifikan dalam landscape digital marketing. Berbagai teknologi baru dan perubahan perilaku konsumen menciptakan peluang dan tantangan baru bagi marketer.
-
-**Tren Utama 2024:**
-• AI-powered personalization
-• Voice search optimization
-• Interactive content dan AR/VR
-• Sustainability marketing
-• Micro dan nano influencer marketing
-
-**Strategi yang Efektif**
-
-Marketer harus beradaptasi dengan cepat terhadap perubahan algoritma platform media sosial dan meningkatnya ekspektasi konsumen terhadap pengalaman yang personal dan relevan.`,
-        sourceUrl: "https://marketingtoday.com/trends-2024",
-      },
-      {
-        id: 5,
-        title: "Pemrograman Python untuk Data Science",
-        author: "Prof. Ahmad Wijaya",
-        description:
-          "Panduan komprehensif menggunakan Python untuk analisis data dan machine learning.",
-        category: "e-book",
-        timestamp: Date.now() - 345600000,
-        readTime: "3 jam",
-        createdBy: "Fakultas Ilmu Komputer",
-        coverImage: sampleCovers.ebook3,
-        content: `**Pengenalan Data Science dengan Python**
-
-Python telah menjadi bahasa pemrograman pilihan utama untuk data science berkat ecosystem library yang kaya dan syntax yang mudah dipahami.
-
-**Library Utama:**
-• Pandas untuk manipulasi data
-• NumPy untuk operasi numerik
-• Matplotlib dan Seaborn untuk visualisasi
-• Scikit-learn untuk machine learning
-• TensorFlow dan PyTorch untuk deep learning
-
-**Langkah Awal**
-
-Memulai journey dalam data science memerlukan pemahaman yang solid tentang statistik, matematika, dan tentunya kemampuan programming yang baik.`,
-      },
-      {
-        id: 6,
-        title: "Inovasi Teknologi Pendidikan Indonesia",
-        author: "Edukasi Digital",
-        description:
-          "Laporan komprehensif tentang perkembangan teknologi pendidikan di Indonesia.",
-        category: "e-kliping",
-        timestamp: Date.now() - 432000000,
-        readTime: "25 menit",
-        createdBy: "Peneliti Pendidikan",
-        coverImage: sampleCovers.ekliping3,
-        content: `**Transformasi Digital dalam Pendidikan**
-
-Pandemi COVID-19 telah mempercepat adopsi teknologi dalam dunia pendidikan Indonesia. Berbagai inovasi bermunculan untuk mendukung pembelajaran jarak jauh.
-
-**Inovasi Terdepan:**
-1. Platform pembelajaran adaptif
-2. Virtual reality dalam pembelajaran
-3. AI untuk personalisasi kurikulum
-4. Gamifikasi dalam edukasi
-5. Blockchain untuk sertifikasi
-
-**Dampak Positif**
-
-Teknologi pendidikan tidak hanya memudahkan akses pembelajaran tetapi juga meningkatkan engagement dan efektivitas proses belajar mengajar.`,
-        sourceUrl: "https://edukasidigital.id/inovasi-edtech",
-      },
-    ];
-
-    setItems(demoItems);
+    fetchArticles();
   }, []);
+
+  // Function untuk mendapatkan gambar default berdasarkan kategori
+  const getDefaultImage = (category) => {
+    if (category === 'e-book') {
+      return "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=600&fit=crop";
+    } else {
+      return "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=400&h=600&fit=crop";
+    }
+  };
 
   // Filter categories
   const categories = [
@@ -323,7 +175,17 @@ Teknologi pendidikan tidak hanya memudahkan akses pembelajaran tetapi juga menin
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {filteredData.length === 0 ? (
+        {isLoading ? (
+          <div className="text-center py-16">
+            <div className="w-16 h-16 mx-auto mb-6 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
+            <h3 className="text-xl font-semibold text-gray-600 dark:text-gray-400 mb-2">
+              Memuat konten...
+            </h3>
+            <p className="text-gray-500 dark:text-gray-500">
+              Mengambil data dari server
+            </p>
+          </div>
+        ) : filteredData.length === 0 ? (
           <div className="text-center py-16">
             <div className="w-24 h-24 mx-auto mb-6 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
               <Search size={32} className="text-gray-400" />
@@ -351,15 +213,7 @@ Teknologi pendidikan tidak hanya memudahkan akses pembelajaran tetapi juga menin
                     alt={item.title}
                     onError={(e) => {
                       // Fallback jika gambar gagal load
-                      e.target.parentElement.innerHTML = `
-                        <div class="w-full h-64 bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                          ${
-                            item.category === "e-book"
-                              ? '<svg class="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M6 2c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6H6zm7 7V3.5L18.5 9H13z"/></svg>'
-                              : '<svg class="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z"/></svg>'
-                          }
-                        </div>
-                      `;
+                      e.target.src = getDefaultImage(item.category);
                     }}
                   />
 
@@ -424,7 +278,7 @@ Teknologi pendidikan tidak hanya memudahkan akses pembelajaran tetapi juga menin
 }
 
 // Component untuk membaca konten detail
-function ContentReader({ item, onBack }) {
+function ContentReader({ item, onBack, onSelectItem }) {
   return (
     <div className="min-h-screen">
       {/* Render komponen yang sesuai berdasarkan kategori */}
@@ -434,12 +288,23 @@ function ContentReader({ item, onBack }) {
           onBack={onBack}
           onNavigateToLibrary={onBack}
           onSelectBook={(book) => {
-            // Handle navigation ke book lain jika diperlukan
-            console.log("Navigate to book:", book);
+            // Handle navigation ke book lain
+            if (onSelectItem) {
+              onSelectItem(book);
+            }
           }}
         />
       ) : (
-        <IsiEkliping item={item} onBack={onBack} />
+        <IsiEkliping 
+          item={item} 
+          onBack={onBack}
+          onSelectArticle={(article) => {
+            // Handle navigation ke article lain
+            if (onSelectItem) {
+              onSelectItem(article);
+            }
+          }}
+        />
       )}
     </div>
   );
@@ -455,6 +320,11 @@ export default function Perpustakaan() {
     setCurrentView("reader");
   };
 
+  const handleSelectItem = (item) => {
+    setSelectedItem(item);
+    // Tetap di reader view, hanya ganti item
+  };
+
   const handleBackToList = () => {
     setCurrentView("list");
     setSelectedItem(null);
@@ -463,7 +333,7 @@ export default function Perpustakaan() {
   };
 
   if (currentView === "reader" && selectedItem) {
-    return <ContentReader item={selectedItem} onBack={handleBackToList} />;
+    return <ContentReader item={selectedItem} onBack={handleBackToList} onSelectItem={handleSelectItem} />;
   }
 
   return <PerpustakaanPage onViewContent={handleViewContent} />;
