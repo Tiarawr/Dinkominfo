@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from "react";
 import {
   Newspaper,
   Calendar,
@@ -12,27 +13,43 @@ import {
 import Footer from "./Footer";
 import ThemeToggle from "./ThemeToggle";
 
-export default function IsiEkliping({ item, onBack }) {
-  const recommendedArticles = [
-    {
-      id: 7,
-      title: "Tren Teknologi Blockchain di ASEAN",
-      author: "Asia Tech Weekly",
-      readTime: "8 menit",
-    },
-    {
-      id: 8,
-      title: "Startup Indonesia Raih Pendanaan Terbesar",
-      author: "Bisnis Indonesia",
-      readTime: "5 menit",
-    },
-    {
-      id: 9,
-      title: "Digitalisasi UMKM Pasca Pandemi",
-      author: "Ekonomi Digital Today",
-      readTime: "12 menit",
-    },
-  ];
+// API Base URL
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api";
+
+export default function IsiEkliping({ item, onBack, onNavigateToLibrary, onSelectArticle }) {
+  const [recommendedArticles, setRecommendedArticles] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch recommended articles from backend
+  useEffect(() => {
+    const fetchRecommendedArticles = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await fetch(`http://localhost:8000/api/v2/ekliping`, {
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          // Ambil 3 e-kliping terbaru dan exclude item yang sedang dibaca
+          const eklipings = data.data.data
+            ?.filter(article => article.id !== item?.id)
+            .slice(0, 3) || [];
+          
+          setRecommendedArticles(eklipings);
+        }
+      } catch (error) {
+        console.error("Error fetching recommended articles:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchRecommendedArticles();
+  }, [item?.id]);
 
   const formatDate = (timestamp) => {
     return new Date(timestamp).toLocaleDateString("id-ID", {
@@ -50,6 +67,13 @@ export default function IsiEkliping({ item, onBack }) {
       .replace(/^• (.+)$/gm, "<li>$1</li>")
       .replace(/^(\d+)\. (.+)$/gm, "<li>$1. $2</li>")
       .replace(/\n/g, "<br>");
+  };
+
+  const handleReadRecommendation = (article) => {
+    if (onSelectArticle) {
+      // Menggunakan data asli dari backend tanpa modifikasi dummy
+      onSelectArticle(article);
+    }
   };
 
   const handleShare = async () => {
@@ -70,49 +94,98 @@ export default function IsiEkliping({ item, onBack }) {
     }
   };
 
-  const handleDownload = () => {
-    const printContent = `
-      <html>
-        <head>
-          <title>${item.title}</title>
-          <style>
-            body { font-family: Arial, sans-serif; line-height: 1.6; margin: 40px; }
-            h1 { color: #7c3aed; margin-bottom: 10px; }
-            .meta { color: #666; margin-bottom: 20px; font-size: 14px; }
-            .content { margin-top: 30px; }
-            .content p { margin-bottom: 15px; }
-            strong { font-weight: bold; }
-            li { margin-bottom: 5px; }
-            .source { margin-top: 30px; padding: 15px; background: #f3f4f6; border-left: 4px solid #7c3aed; }
-          </style>
-        </head>
-        <body>
-          <h1>${item.title}</h1>
-          <div class="meta">
-            <p><strong>Sumber:</strong> ${item.author}</p>
-            <p><strong>Tanggal:</strong> ${formatDate(item.timestamp)}</p>
-            <p><strong>Estimasi Waktu Baca:</strong> ${
-              item.readTime || "Tidak tersedia"
-            }</p>
-          </div>
-          <div class="content">
-            ${formatContentForDisplay(item.content)}
-          </div>
-          ${
-            item.sourceUrl
-              ? `<div class="source"><strong>Sumber Asli:</strong> ${item.sourceUrl}</div>`
-              : ""
+  const handleDownload = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('Silakan login terlebih dahulu');
+        return;
+      }
+
+      // Jika ada file_path, download file asli dari backend
+      if (item.file_path) {
+        const response = await fetch(`http://localhost:8000/api/v2/ekliping/${item.id}/download`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (response.ok) {
+          // Buat blob dan download
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          
+          // Ambil nama file dari header response atau gunakan default
+          const contentDisposition = response.headers.get('content-disposition');
+          let filename = `${item.title.replace(/[^a-z0-9]/gi, "_")}_kliping`;
+          
+          if (contentDisposition) {
+            const match = contentDisposition.match(/filename="(.+)"/);
+            if (match) {
+              filename = match[1];
+            }
           }
-        </body>
-      </html>
-    `;
-    const blob = new Blob([printContent], { type: "text/html" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${item.title.replace(/[^a-z0-9]/gi, "_")}_kliping.html`;
-    a.click();
-    URL.revokeObjectURL(url);
+          
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+        } else {
+          throw new Error('Gagal mengunduh file');
+        }
+      } else {
+        // Fallback ke HTML download jika tidak ada file
+        const printContent = `
+          <html>
+            <head>
+              <title>${item.title}</title>
+              <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; margin: 40px; }
+                h1 { color: #7c3aed; margin-bottom: 10px; }
+                .meta { color: #666; margin-bottom: 20px; font-size: 14px; }
+                .content { margin-top: 30px; }
+                .content p { margin-bottom: 15px; }
+                strong { font-weight: bold; }
+                li { margin-bottom: 5px; }
+                .source { margin-top: 30px; padding: 15px; background: #f3f4f6; border-left: 4px solid #7c3aed; }
+              </style>
+            </head>
+            <body>
+              <h1>${item.title}</h1>
+              <div class="meta">
+                <p><strong>Sumber:</strong> ${item.author}</p>
+                <p><strong>Tanggal:</strong> ${formatDate(item.published_at)}</p>
+                <p><strong>Estimasi Waktu Baca:</strong> ${
+                  item.readTime || "Tidak tersedia"
+                }</p>
+              </div>
+              <div class="content">
+                ${formatContentForDisplay(item.content)}
+              </div>
+              ${
+                item.sourceUrl
+                  ? `<div class="source"><strong>Sumber Asli:</strong> ${item.sourceUrl}</div>`
+                  : ""
+              }
+            </body>
+          </html>
+        `;
+        const blob = new Blob([printContent], { type: "text/html" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${item.title.replace(/[^a-z0-9]/gi, "_")}_kliping.html`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+    } catch (error) {
+      console.error('Error downloading file:', error);
+      alert('Gagal mengunduh file');
+    }
   };
 
   return (
@@ -126,7 +199,7 @@ export default function IsiEkliping({ item, onBack }) {
               className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
             >
               <ArrowLeft size={20} />
-              Kembali ke Perpustakaan
+              Kembali ke Dashboard
             </button>
 
             <ThemeToggle />
@@ -160,20 +233,20 @@ export default function IsiEkliping({ item, onBack }) {
                       <User size={14} className="text-white" />
                     </div>
                     <span className="font-medium text-purple-600 dark:text-purple-400">
-                      dari {item.author}
+                      dari {item.author || item.created_by || "Sumber Tidak Diketahui"}
                     </span>
                   </div>
                   <span>•</span>
                   <span className="flex items-center gap-1">
                     <Calendar size={14} />
-                    {formatDate(item.timestamp)}
+                    {item.published_at ? formatDate(item.published_at) : "Tanggal tidak tersedia"}
                   </span>
-                  {item.readTime && (
+                  {(item.readTime || item.content) && (
                     <>
                       <span>•</span>
                       <span className="flex items-center gap-1">
                         <Clock size={14} />
-                        {item.readTime}
+                        {item.readTime || `${Math.ceil((item.content?.length || 1000) / 200)} menit`}
                       </span>
                     </>
                   )}
@@ -236,19 +309,19 @@ export default function IsiEkliping({ item, onBack }) {
                         <strong>Judul:</strong> {item.title}
                       </p>
                       <p>
-                        <strong>Sumber:</strong> {item.author}
+                        <strong>Sumber:</strong> {item.author || item.created_by || "Sumber Tidak Diketahui"}
                       </p>
                       <p>
                         <strong>Tanggal Terbit:</strong>{" "}
-                        {formatDate(item.timestamp)}
+                        {item.published_at ? formatDate(item.published_at) : "Tanggal tidak tersedia"}
                       </p>
                       <p>
-                        <strong>Dikliping oleh:</strong> {item.createdBy}
+                        <strong>Dikliping oleh:</strong> {item.created_by || "Administrator"}
                       </p>
-                      {item.updatedBy && (
+                      {item.updated_at && (
                         <p>
-                          <strong>Terakhir diupdate oleh:</strong>{" "}
-                          {item.updatedBy}
+                          <strong>Terakhir diupdate:</strong>{" "}
+                          {formatDate(item.updated_at)}
                         </p>
                       )}
                     </div>
@@ -310,11 +383,17 @@ export default function IsiEkliping({ item, onBack }) {
             <div className="bg-white dark:bg-[#1F2937] rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 sticky top-32">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                 <Newspaper size={18} />
-                Artikel Terkait
+                Saran E-Kliping
               </h3>
 
               <div className="space-y-4">
-                {recommendedArticles.map((article) => (
+                {isLoading ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">Memuat saran e-kliping...</p>
+                  </div>
+                ) : recommendedArticles.length > 0 ? (
+                  recommendedArticles.map((article) => (
                   <div
                     key={article.id}
                     className="border-b border-gray-200 dark:border-gray-700 pb-4 last:border-b-0 last:pb-0"
@@ -323,24 +402,35 @@ export default function IsiEkliping({ item, onBack }) {
                       {article.title}
                     </h4>
                     <p className="text-xs text-purple-600 dark:text-purple-400 mb-1">
-                      dari {article.author}
+                      dari {article.author || article.created_by || "Sumber Tidak Diketahui"}
                     </p>
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
                         <Clock size={10} />
-                        {article.readTime}
+                        {article.readTime || `${article.reading_time || 5} menit baca`}
                       </span>
-                      <button className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 flex items-center gap-1">
+                      <button
+                        onClick={() => handleReadRecommendation(article)}
+                        className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 flex items-center gap-1"
+                      >
                         <Eye size={12} />
                         Baca
                       </button>
                     </div>
                   </div>
-                ))}
+                ))
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Tidak ada saran e-kliping tersedia.</p>
+                  </div>
+                )}
               </div>
 
-              <button className="w-full mt-4 py-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 border border-blue-600 dark:border-blue-400 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">
-                Lihat Semua E-Kliping
+              <button 
+                onClick={() => window.location.href = '/dashboard'}
+                className="w-full mt-4 py-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 border border-blue-600 dark:border-blue-400 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+              >
+                Lebih Banyak E-Kliping
               </button>
             </div>
           </div>

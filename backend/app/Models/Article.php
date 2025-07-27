@@ -12,7 +12,7 @@ class Article extends Model
     protected $fillable = [
         'title', 'description', 'content', 'image', 
         'slug', 'type', 'is_featured', 'published_at',
-        'author', 'reading_time', 'category', 'synopsis'
+        'author', 'reading_time', 'file_path'
     ];
 
     protected $casts = [

@@ -1,35 +1,58 @@
 import React, { useState, useEffect } from "react";
-import { User, Lock, Eye, EyeOff, Moon, Sun } from "lucide-react";
-import { useNavigate } from "react-router-dom"; // Tambahkan ini
+import { User, Lock, Eye, EyeOff, Moon, Sun, CheckCircle, XCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
+// API Base URL
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+// Custom Notification Component
+const Notification = ({ type, message, onClose }) => {
+  const Icon = type === "success" ? CheckCircle : XCircle;
+  const colorClass = type === "success" 
+    ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-800 dark:text-green-200"
+    : "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-800 dark:text-red-200";
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose();
+    }, 4000);
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  return (
+    <div className="fixed top-4 right-4 z-50 animate-in slide-in-from-top-2">
+      <div className={`flex items-center gap-3 p-4 border rounded-lg shadow-lg backdrop-blur-sm ${colorClass}`}>
+        <Icon size={20} />
+        <span className="font-medium">{message}</span>
+      </div>
+    </div>
+  );
+};
 
 export default function LoginPage() {
-  const [isDarkMode, setIsDarkMode] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loginData, setLoginData] = useState({
     username: "",
     password: "",
   });
-  const [loginError, setLoginError] = useState("");
+  const [notification, setNotification] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const navigate = useNavigate(); // Tambahkan ini
+  const navigate = useNavigate();
 
   // Check if already logged in
   useEffect(() => {
     const isLoggedIn = localStorage.getItem("isLoggedIn");
     const currentUser = localStorage.getItem("currentUser");
     if (isLoggedIn === "true" && currentUser) {
-      navigate("/dashboard"); // Redirect ke dashboard
+      navigate("/dashboard");
+    }
+
+    // Initialize dark mode from system preference
+    if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      document.documentElement.classList.add("dark");
     }
   }, [navigate]);
-
-  // Predefined users (in real app, this would be from backend)
-  const validUsers = [
-    { username: "admin", password: "admin123", role: "Administrator" },
-    { username: "user", password: "user123", role: "User" },
-    { username: "demo", password: "demo123", role: "Demo User" },
-    { username: "tiara", password: "tiara123", role: "User" },
-  ];
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -37,39 +60,57 @@ export default function LoginPage() {
       ...prev,
       [name]: value,
     }));
-    setLoginError("");
+    setNotification(null);
+  };
+
+  const showNotification = (type, message) => {
+    setNotification({ type, message });
   };
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    setLoginError("");
+    setNotification(null);
 
-    // Simulate API call delay
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    try {
+      const response = await fetch(`${API_BASE_URL}/v3/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: loginData.username,
+          password: loginData.password,
+        }),
+      });
 
-    const user = validUsers.find(
-      (u) =>
-        u.username === loginData.username && u.password === loginData.password
-    );
+      const result = await response.json();
 
-    if (user) {
-      // Store login state in localStorage
-      localStorage.setItem("isLoggedIn", "true");
-      localStorage.setItem(
-        "currentUser",
-        JSON.stringify({
-          username: user.username,
-          role: user.role,
+      if (response.ok && result.success) {
+        const userData = {
+          username: result.user.username || loginData.username,
+          role: result.user.name || "User",
           loginTime: new Date().toISOString(),
-        })
-      );
+        };
 
-      // Redirect ke dashboard
-      navigate("/dashboard");
-    } else {
-      setLoginError("Username atau password salah!");
+        // Store login state and token
+        localStorage.setItem("token", result.token);
+        localStorage.setItem("isLoggedIn", "true");
+        localStorage.setItem("currentUser", JSON.stringify(userData));
+
+        showNotification("success", "Login berhasil! Mengalihkan ke dashboard...");
+        
+        setTimeout(() => {
+          navigate("/dashboard");
+        }, 1000);
+      } else {
+        showNotification("error", result.message || "Username atau password salah!");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      showNotification("error", "Gagal terhubung ke server. Pastikan backend berjalan!");
     }
+
     setIsLoading(false);
   };
 
@@ -80,59 +121,57 @@ export default function LoginPage() {
   };
 
   return (
-    <div
-      className={`min-h-screen flex items-center justify-center transition-colors duration-300 ${
-        isDarkMode
-          ? "dark bg-[#181A2A]"
-          : "bg-gradient-to-br from-blue-50 via-white to-purple-50"
-      }`}
-    >
+    <div className="min-h-screen flex items-center justify-center transition-colors duration-300 bg-gray-50 dark:bg-[#181A2A] relative">
+      {/* Notification */}
+      {notification && (
+        <Notification
+          type={notification.type}
+          message={notification.message}
+          onClose={() => setNotification(null)}
+        />
+      )}
+
       {/* Dark Mode Toggle */}
-      <div className="absolute top-6 right-6">
+      <div className="absolute top-4 right-4">
         <button
-          onClick={() => setIsDarkMode(!isDarkMode)}
-          className="p-3 rounded-xl bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300 shadow-lg hover:shadow-xl"
+          onClick={() => document.documentElement.classList.toggle("dark")}
+          className="p-2 rounded-lg bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-800 transition-colors shadow-sm"
         >
-          {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+          <span className="dark:hidden">
+            <Moon size={20} />
+          </span>
+          <span className="hidden dark:inline">
+            <Sun size={20} />
+          </span>
         </button>
       </div>
 
-      {/* Background Animation */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-300 dark:bg-purple-900 rounded-full mix-blend-multiply dark:mix-blend-soft-light filter blur-xl opacity-70 animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-300 dark:bg-blue-900 rounded-full mix-blend-multiply dark:mix-blend-soft-light filter blur-xl opacity-70 animate-pulse animation-delay-2000"></div>
-      </div>
-
-      <div className="w-full max-w-md relative z-10">
+      <div className="w-full max-w-md">
         {/* Main Login Card */}
-        <div className="bg-white/80 dark:bg-[#1F2937]/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden">
+        <div className="bg-white/90 dark:bg-[#1F2937]/90 backdrop-blur-xl rounded-xl shadow-2xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden">
           {/* Header */}
-          <div className="px-8 py-8 bg-gradient-to-r from-blue-600 via-blue-700 to-purple-600 relative overflow-hidden">
-            <div className="absolute inset-0 bg-black/10"></div>
-            <div className="relative z-10 text-center">
-              <div className="w-16 h-16 mx-auto mb-4 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-                <User size={32} className="text-white" />
-              </div>
-              <h2 className="text-2xl font-bold text-white mb-2">
-                Selamat Datang
-              </h2>
-              <p className="text-blue-100 text-sm">Masuk ke dashboard Anda</p>
+          <div className="px-8 py-8 text-center border-b border-gray-200 dark:border-gray-700">
+            <div className="w-16 h-16 mx-auto mb-4 bg-blue-600 rounded-xl flex items-center justify-center">
+              <User size={32} className="text-white" />
             </div>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              Selamat Datang
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400 text-sm">
+              Masuk ke Digital Library Dashboard
+            </p>
           </div>
 
           {/* Login Form */}
-          <div className="p-8 pt-6 space-y-6">
-            <div className="space-y-4">
+          <div className="p-8 space-y-6">
+            <form onSubmit={handleLogin} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Username
                 </label>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <User
-                      size={18}
-                      className="text-gray-400 group-focus-within:text-blue-500 transition-colors"
-                    />
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <User size={18} className="text-gray-400" />
                   </div>
                   <input
                     type="text"
@@ -140,8 +179,9 @@ export default function LoginPage() {
                     value={loginData.username}
                     onChange={handleInputChange}
                     onKeyDown={handleKeyPress}
-                    className="w-full pl-12 pr-4 py-3.5 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-all duration-300 placeholder-gray-400"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-all duration-200 placeholder-gray-400"
                     placeholder="Masukkan username"
+                    required
                   />
                 </div>
               </div>
@@ -150,12 +190,9 @@ export default function LoginPage() {
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Password
                 </label>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <Lock
-                      size={18}
-                      className="text-gray-400 group-focus-within:text-blue-500 transition-colors"
-                    />
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Lock size={18} className="text-gray-400" />
                   </div>
                   <input
                     type={showPassword ? "text" : "password"}
@@ -163,78 +200,49 @@ export default function LoginPage() {
                     value={loginData.password}
                     onChange={handleInputChange}
                     onKeyDown={handleKeyPress}
-                    className="w-full pl-12 pr-12 py-3.5 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-all duration-300 placeholder-gray-400"
+                    className="w-full pl-10 pr-12 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-all duration-200 placeholder-gray-400"
                     placeholder="Masukkan password"
+                    required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
                   >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
               </div>
-            </div>
 
-            {/* Error Message */}
-            {loginError && (
-              <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl animate-shake">
-                <p className="text-sm text-red-600 dark:text-red-400 text-center font-medium">
-                  {loginError}
-                </p>
-              </div>
-            )}
-
-            {/* Login Button */}
-            <button
-              onClick={handleLogin}
-              disabled={isLoading || !loginData.username || !loginData.password}
-              className="w-full py-3.5 px-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed text-white font-semibold rounded-xl transition-all duration-300 flex items-center justify-center gap-3 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:transform-none"
-            >
-              {isLoading ? (
-                <>
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>Memproses...</span>
-                </>
-              ) : (
-                <>
-                  <User size={18} />
-                  <span>Masuk ke Dashboard</span>
-                </>
-              )}
-            </button>
+              {/* Login Button */}
+              <button
+                type="submit"
+                disabled={isLoading || !loginData.username || !loginData.password}
+                className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-all duration-200 flex items-center justify-center gap-3 shadow-sm hover:shadow-md"
+              >
+                {isLoading ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Memproses...</span>
+                  </>
+                ) : (
+                  <>
+                    <User size={18} />
+                    <span>Masuk ke Dashboard</span>
+                  </>
+                )}
+              </button>
+            </form>
 
             {/* Footer */}
             <div className="text-center pt-4 border-t border-gray-200 dark:border-gray-700">
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                Demo aplikasi dashboard dengan sistem login
+                Digital Library Management System
               </p>
             </div>
           </div>
         </div>
       </div>
-
-      <style jsx>{`
-        @keyframes shake {
-          0%,
-          100% {
-            transform: translateX(0);
-          }
-          25% {
-            transform: translateX(-5px);
-          }
-          75% {
-            transform: translateX(5px);
-          }
-        }
-        .animate-shake {
-          animation: shake 0.5s ease-in-out;
-        }
-        .animation-delay-2000 {
-          animation-delay: 2s;
-        }
-      `}</style>
     </div>
   );
 }

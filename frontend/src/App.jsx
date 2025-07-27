@@ -35,13 +35,13 @@ function AnimatedRoutes() {
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/" element={<Home />} />
         <Route path="/home" element={<Home />} />
         <Route path="/perpustakaan" element={<PerpustakaanApp />} />
         <Route path="/contact" element={<Kontak />} />
         <Route path="/about" element={<About />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/login" element={<LoginPage />} />
         <Route path="/e-book" element={<IsiEbook />} />
         <Route path="/e-kliping" element={<IsiEkliping />} />
       </Routes>
