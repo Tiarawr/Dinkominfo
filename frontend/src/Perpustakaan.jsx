@@ -21,6 +21,9 @@ import {
 // Import Header dan Footer dari file terpisah
 import Header from "./components/Header";
 import Footer from "./components/Footer";
+// Import komponen IsiEbook dan IsiEkliping
+import IsiEbook from "./components/IsiEbook";
+import IsiEkliping from "./components/IsiEkliping";
 
 // Sample cover images for demo
 const sampleCovers = {
@@ -37,257 +40,6 @@ const sampleCovers = {
   ekliping3:
     "https://images.unsplash.com/photo-1432888622747-4eb9a8efeb07?w=400&h=600&fit=crop",
 };
-
-function IsiEbook({ item, onBack }) {
-  // Simulate routing
-  useEffect(() => {
-    window.history.pushState({}, "", `/ebook/${item.id}`);
-  }, [item.id]);
-
-  // Format content for display (convert markdown-like formatting to HTML)
-  const formatContentForDisplay = (content) => {
-    if (!content) return "Konten belum tersedia.";
-
-    return content
-      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>") // Bold
-      .replace(/\*(.*?)\*/g, "<em>$1</em>") // Italic
-      .replace(/^• (.+)$/gm, "<li>$1</li>") // Bullet points
-      .replace(/^(\d+)\. (.+)$/gm, "<li>$1. $2</li>") // Numbered lists
-      .replace(/\n/g, "<br>"); // Line breaks
-  };
-
-  const formatDate = (timestamp) => {
-    return new Date(timestamp).toLocaleDateString("id-ID", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
-
-  return (
-    <div className="min-h-screen font-['Poppins'] bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
-      {/* Back Button - dengan padding top untuk menghindari overlap dengan header */}
-      <div className="bg-gray-50 dark:bg-gray-900 pt-6">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <button
-            onClick={onBack}
-            className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors mb-6"
-          >
-            <ArrowLeft size={20} />
-            Kembali ke Perpustakaan
-          </button>
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
-        <article className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8">
-          {/* Header */}
-          <header className="mb-8">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="px-3 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400">
-                E-Book
-              </span>
-              {item.readTime && (
-                <span className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-                  <Clock size={12} />
-                  {item.readTime}
-                </span>
-              )}
-            </div>
-
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-              {item.title}
-            </h1>
-
-            <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400 mb-6">
-              <span className="font-medium text-blue-600 dark:text-blue-400">
-                oleh {item.author}
-              </span>
-              <span>•</span>
-              <span className="flex items-center gap-1">
-                <Calendar size={14} />
-                {formatDate(item.timestamp)}
-              </span>
-            </div>
-
-            {/* Description */}
-            <div className="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 p-4 mb-8">
-              <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">
-                Sinopsis
-              </h3>
-              <p className="text-blue-800 dark:text-blue-200 leading-relaxed">
-                {item.description}
-              </p>
-            </div>
-          </header>
-
-          {/* Content Body */}
-          <div className="prose prose-lg prose-gray dark:prose-invert max-w-none">
-            <div
-              className="text-gray-700 dark:text-gray-300 leading-relaxed"
-              dangerouslySetInnerHTML={{
-                __html: formatContentForDisplay(item.content),
-              }}
-            />
-          </div>
-
-          {/* Footer */}
-          <footer className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-              <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
-                Informasi Buku
-              </h4>
-              <div className="text-sm text-gray-600 dark:text-gray-400">
-                <p>
-                  <strong>Dipublikasikan:</strong> {formatDate(item.timestamp)}
-                </p>
-                <p>
-                  <strong>Ditambahkan oleh:</strong> {item.createdBy}
-                </p>
-                <p>
-                  <strong>Kategori:</strong> E-Book
-                </p>
-              </div>
-            </div>
-          </footer>
-        </article>
-      </div>
-    </div>
-  );
-}
-
-function IsiEkliping({ item, onBack }) {
-  // Simulate routing
-  useEffect(() => {
-    window.history.pushState({}, "", `/ekliping/${item.id}`);
-  }, [item.id]);
-
-  // Format content for display (convert markdown-like formatting to HTML)
-  const formatContentForDisplay = (content) => {
-    if (!content) return "Konten belum tersedia.";
-
-    return content
-      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>") // Bold
-      .replace(/\*(.*?)\*/g, "<em>$1</em>") // Italic
-      .replace(/^• (.+)$/gm, "<li>$1</li>") // Bullet points
-      .replace(/^(\d+)\. (.+)$/gm, "<li>$1. $2</li>") // Numbered lists
-      .replace(/\n/g, "<br>"); // Line breaks
-  };
-
-  const formatDate = (timestamp) => {
-    return new Date(timestamp).toLocaleDateString("id-ID", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
-
-  return (
-    <div className="min-h-screen font-['Poppins'] bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
-      {/* Back Button - dengan padding top untuk menghindari overlap dengan header */}
-      <div className="bg-gray-50 dark:bg-gray-900 pt-6">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <button
-            onClick={onBack}
-            className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors mb-6"
-          >
-            <ArrowLeft size={20} />
-            Kembali ke Perpustakaan
-          </button>
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
-        <article className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8">
-          {/* Header */}
-          <header className="mb-8">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="px-3 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400">
-                E-Kliping
-              </span>
-              {item.readTime && (
-                <span className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-                  <Clock size={12} />
-                  {item.readTime}
-                </span>
-              )}
-            </div>
-
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-              {item.title}
-            </h1>
-
-            <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400 mb-6">
-              <span className="font-medium text-blue-600 dark:text-blue-400">
-                dari {item.author}
-              </span>
-              <span>•</span>
-              <span className="flex items-center gap-1">
-                <Calendar size={14} />
-                {formatDate(item.timestamp)}
-              </span>
-            </div>
-
-            {/* Description */}
-            <div className="bg-purple-50 dark:bg-purple-900/20 border-l-4 border-purple-500 p-4 mb-8">
-              <h3 className="font-semibold text-purple-900 dark:text-purple-100 mb-2">
-                Ringkasan
-              </h3>
-              <p className="text-purple-800 dark:text-purple-200 leading-relaxed">
-                {item.description}
-              </p>
-            </div>
-          </header>
-
-          {/* Content Body */}
-          <div className="prose prose-lg prose-gray dark:prose-invert max-w-none">
-            <div
-              className="text-gray-700 dark:text-gray-300 leading-relaxed"
-              dangerouslySetInnerHTML={{
-                __html: formatContentForDisplay(item.content),
-              }}
-            />
-          </div>
-
-          {/* Footer */}
-          <footer className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-              <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
-                Informasi Artikel
-              </h4>
-              <div className="text-sm text-gray-600 dark:text-gray-400">
-                <p>
-                  <strong>Dipublikasikan:</strong> {formatDate(item.timestamp)}
-                </p>
-                <p>
-                  <strong>Ditambahkan oleh:</strong> {item.createdBy}
-                </p>
-                <p>
-                  <strong>Kategori:</strong> E-Kliping
-                </p>
-                {item.sourceUrl && (
-                  <p>
-                    <strong>Sumber:</strong>{" "}
-                    <a
-                      href={item.sourceUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 dark:text-blue-400 hover:underline"
-                    >
-                      {item.sourceUrl}
-                    </a>
-                  </p>
-                )}
-              </div>
-            </div>
-          </footer>
-        </article>
-      </div>
-    </div>
-  );
-}
 
 // Component untuk halaman E-Book utama
 function PerpustakaanPage({ onViewContent }) {
@@ -508,11 +260,12 @@ Teknologi pendidikan tidak hanya memudahkan akses pembelajaran tetapi juga menin
   };
 
   return (
-    <div className="min-h-screen font-['Poppins'] bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
       {/* Header */}
+      <Header />
 
-      {/* Hero Section */}
-      <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+      {/* Hero Section - dengan padding top untuk menghindari overlap dengan header */}
+      <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 pt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center">
             <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
@@ -673,16 +426,21 @@ Teknologi pendidikan tidak hanya memudahkan akses pembelajaran tetapi juga menin
 // Component untuk membaca konten detail
 function ContentReader({ item, onBack }) {
   return (
-    <div className="min-h-screen font-['Poppins'] bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
-      {/* Content - Full Width tanpa Header */}
-      <div className="min-h-screen">
-        {/* Render komponen yang sesuai berdasarkan kategori */}
-        {item.category === "e-book" ? (
-          <IsiEbook item={item} onBack={onBack} />
-        ) : (
-          <IsiEkliping item={item} onBack={onBack} />
-        )}
-      </div>
+    <div className="min-h-screen">
+      {/* Render komponen yang sesuai berdasarkan kategori */}
+      {item.category === "e-book" ? (
+        <IsiEbook
+          item={item}
+          onBack={onBack}
+          onNavigateToLibrary={onBack}
+          onSelectBook={(book) => {
+            // Handle navigation ke book lain jika diperlukan
+            console.log("Navigate to book:", book);
+          }}
+        />
+      ) : (
+        <IsiEkliping item={item} onBack={onBack} />
+      )}
     </div>
   );
 }
