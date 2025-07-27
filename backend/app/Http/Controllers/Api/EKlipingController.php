@@ -41,7 +41,6 @@ class EKlipingController extends Controller
                 'image' => 'nullable|url',
                 'published_at' => 'nullable|date',
                 'author' => 'required|string|max:255',
-                'reading_time' => 'nullable|integer'
             ]);
 
             $validated['type'] = 'e-kliping';

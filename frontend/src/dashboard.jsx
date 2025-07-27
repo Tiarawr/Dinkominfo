@@ -198,7 +198,6 @@ function Dashboard({ currentUser, onLogout, isDarkMode, setIsDarkMode }) {
     author: "",
     description: "",
     category: "e-kliping",
-    readTime: "",
     mainImage: "",
     content: "",
   });
@@ -226,7 +225,6 @@ function Dashboard({ currentUser, onLogout, isDarkMode, setIsDarkMode }) {
           description:
             "Kabupaten Pekalongan terus berkomitmen untuk memberikan pelayanan publik yang terbaik bagi masyarakat melalui berbagai inovasi teknologi digital.",
           category: "e-kliping",
-          readTime: "5 menit baca",
           mainImage:
             "https://images.unsplash.com/photo-1551434678-e076c223a692?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.1&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
           content: `**Portal Digital Terintegrasi**
@@ -369,7 +367,6 @@ Implementasi teknologi digital dalam pelayanan publik telah memberikan dampak po
       author: formData.author,
       description: formData.description,
       category: formData.category,
-      readTime: formData.readTime || "5 menit baca",
       mainImage: formData.mainImage,
       content: formData.content,
       timestamp: new Date().toISOString(),
@@ -402,7 +399,6 @@ Implementasi teknologi digital dalam pelayanan publik telah memberikan dampak po
               author: formData.author,
               description: formData.description,
               category: formData.category,
-              readTime: formData.readTime,
               mainImage: formData.mainImage,
               content: formData.content,
               timestamp: new Date().toISOString(),
@@ -436,7 +432,6 @@ Implementasi teknologi digital dalam pelayanan publik telah memberikan dampak po
       author: item.author || "",
       description: item.description,
       category: item.category || "e-kliping",
-      readTime: item.readTime || "",
       mainImage: item.mainImage || "",
       content: item.content || "",
     });
@@ -450,7 +445,6 @@ Implementasi teknologi digital dalam pelayanan publik telah memberikan dampak po
       author: "",
       description: "",
       category: "e-kliping",
-      readTime: "",
       mainImage: "",
       content: "",
     });
@@ -776,12 +770,6 @@ Implementasi teknologi digital dalam pelayanan publik telah memberikan dampak po
                         >
                           {item.category === "e-book" ? "E-Book" : "E-Kliping"}
                         </span>
-                        {item.readTime && (
-                          <span className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-                            <Clock size={12} />
-                            {item.readTime}
-                          </span>
-                        )}
                       </div>
 
                       {/* Action buttons */}
@@ -955,19 +943,6 @@ Implementasi teknologi digital dalam pelayanan publik telah memberikan dampak po
 
               {/* Read Time & Description */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Waktu Baca
-                  </label>
-                  <input
-                    type="text"
-                    name="readTime"
-                    value={formData.readTime}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                    placeholder="5 menit baca"
-                  />
-                </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     {formData.category === "e-book"
@@ -1193,12 +1168,6 @@ Paragraf penutup yang memberikan ringkasan dan call-to-action.`
                 >
                   {previewItem.category === "e-book" ? "E-Book" : "E-Kliping"}
                 </span>
-                {previewItem.readTime && (
-                  <span className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-full">
-                    <Clock size={12} />
-                    {previewItem.readTime}
-                  </span>
-                )}
               </div>
             </div>
 
@@ -1220,15 +1189,6 @@ Paragraf penutup yang memberikan ringkasan dan call-to-action.`
                     <Calendar size={14} />
                     {formatDate(previewItem.timestamp)}
                   </span>
-                  {previewItem.readTime && (
-                    <>
-                      <span>•</span>
-                      <span className="flex items-center gap-1">
-                        <Clock size={14} />
-                        {previewItem.readTime}
-                      </span>
-                    </>
-                  )}
                 </div>
 
                 {/* Main Image */}

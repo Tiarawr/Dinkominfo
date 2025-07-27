@@ -22,15 +22,15 @@ export default function Contact() {
                 href="mailto:kominfo@pekalongankab.go.id"
                 className="underline"
               >
-                kominfo@pekalongankab.go.id
+                dinkominfo@pekalongankab.go.id
               </a>
             </div>
             <div>
-              <span className="font-semibold">Telepon:</span> (0285) 123456
+              <span className="font-semibold">Telepon:</span> (0285) 381781
             </div>
             <div>
-              <span className="font-semibold">Alamat:</span> Jl. Raya Kajen
-              No.1, Pekalongan
+              <span className="font-semibold">Alamat:</span> Jl. Krakatau No. 2,
+              Kec. Kajen, Kabupaten Pekalongan
             </div>
           </div>
         </div>
