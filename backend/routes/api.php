@@ -9,7 +9,7 @@ use Illuminate\Support\Str;
 
 // Protected routes - require Bearer token
 Route::middleware('auth:sanctum')->group(function () {
-    
+
     // User info
     Route::get('/user', function (Request $request) {
         return $request->user();
@@ -44,6 +44,43 @@ Route::get('test', function () {
     return response()->json(['message' => 'API works!']);
 });
 
+// Public endpoint untuk homepage - artikel terbaru
+Route::get('v1/articles/latest', function () {
+    try {
+        $latestArticles = \App\Models\Article::whereNotNull('published_at')
+            ->orderBy('published_at', 'desc')
+            ->take(3)
+            ->get(['id', 'title', 'description', 'image', 'published_at', 'author', 'slug', 'type'])
+            ->map(function ($article) {
+                return [
+                    'id' => $article->id,
+                    'title' => $article->title,
+                    'description' => \Illuminate\Support\Str::limit($article->description ?? 'Tidak ada deskripsi', 150),
+                    'image' => $article->image ? asset('storage/' . $article->image) : null,
+                    'published_at' => $article->published_at->format('Y-m-d'),
+                    'author' => $article->author,
+                    'slug' => $article->slug,
+                    'type' => $article->type,
+                    'link' => $article->type === 'e-book' ? '/ebooks/' . $article->id : '/ekliping/' . $article->id
+                ];
+            });
+
+        return response()->json([
+            'success' => true,
+            'data' => $latestArticles
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Gagal mengambil data artikel terbaru',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+});
+
+Route::get('v1/ebook/latest', [EBookController::class, 'latest']);
+Route::get('v2/ekliping/latest', [EKlipingController::class, 'latest']);
+
 // Debug route untuk test validation
 Route::post('debug/validate', function (Request $request) {
     return response()->json([
@@ -68,7 +105,7 @@ Route::post('test/ebook-json', function (Request $request) {
         $validated['type'] = 'e-book';
         $validated['slug'] = Str::slug($validated['title']);
         $validated['published_at'] = now();
-        
+
         // Set default values
         if (!isset($validated['description']) || empty($validated['description'])) {
             $validated['description'] = 'Tidak ada deskripsi';
@@ -78,7 +115,7 @@ Route::post('test/ebook-json', function (Request $request) {
         }
 
         $ebook = \App\Models\Article::create($validated);
-        
+
         return response()->json([
             'success' => true,
             'message' => 'E-book berhasil dibuat (JSON test)',

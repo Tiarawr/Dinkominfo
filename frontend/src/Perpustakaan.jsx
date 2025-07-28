@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Search,
   Book,
@@ -26,47 +27,100 @@ import IsiEbook from "./components/IsiEbook";
 import IsiEkliping from "./components/IsiEkliping";
 
 // API Base URL
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api";
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api";
+const STORAGE_BASE_URL =
+  import.meta.env.VITE_STORAGE_BASE_URL || "http://localhost:8000/storage";
 
 // Component untuk halaman E-Book utama
-function PerpustakaanPage({ onViewContent }) {
+function PerpustakaanPage() {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [items, setItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 15;
+
+  const handleViewContent = (item) => {
+    if (item.category === "e-book") {
+      navigate(`/ebooks/${item.id}`);
+    } else if (item.category === "e-kliping") {
+      navigate(`/ekliping/${item.id}`);
+    }
+  };
 
   // Load data dari backend API
   useEffect(() => {
     const fetchArticles = async () => {
       try {
+        setIsLoading(true);
         const token = localStorage.getItem("token");
-        const response = await fetch(`${API_BASE_URL}/articles`, {
+        
+        // Fetch E-books
+        const ebookResponse = await fetch(`${API_BASE_URL}/v1/ebook`, {
           headers: {
-            "Authorization": `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
         });
 
-        if (response.ok) {
-          const data = await response.json();
-          const articles = data.data || [];
-          
-          // Transform data untuk kompatibilitas dengan UI
-          const transformedArticles = articles.map(article => ({
-            ...article,
-            timestamp: new Date(article.created_at).getTime(),
-            readTime: `${Math.ceil((article.content?.length || 1000) / 200)} menit`,
-            author: article.author || article.created_by || "Penulis Tidak Diketahui",
-            coverImage: article.image_url || getDefaultImage(article.category),
-            createdBy: article.created_by || "Administrator"
-          }));
-          
-          setItems(transformedArticles);
-        } else {
-          console.error("Failed to fetch articles");
+        // Fetch E-kliping
+        const eklipingResponse = await fetch(`${API_BASE_URL}/v2/ekliping`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        const allItems = [];
+
+        // Process e-books
+        if (ebookResponse.ok) {
+          const ebookResult = await ebookResponse.json();
+          if (ebookResult.success && ebookResult.data.data) {
+            const ebooks = ebookResult.data.data.map((item) => ({
+              id: item.id,
+              title: item.title,
+              author: item.author,
+              description: item.description,
+              category: "e-book",
+              mainImage: item.image ? `${STORAGE_BASE_URL}/${item.image}` : "",
+              coverImage: item.image ? `${STORAGE_BASE_URL}/${item.image}` : getDefaultImage("e-book"),
+              content: item.content,
+              file_path: item.file_path,
+              timestamp: new Date(item.published_at).getTime(),
+              createdBy: "Administrator",
+            }));
+            allItems.push(...ebooks);
+          }
         }
+
+        // Process e-kliping
+        if (eklipingResponse.ok) {
+          const eklipingResult = await eklipingResponse.json();
+          if (eklipingResult.success && eklipingResult.data.data) {
+            const ekliping = eklipingResult.data.data.map((item) => ({
+              id: item.id,
+              title: item.title,
+              author: item.author,
+              description: item.description,
+              category: "e-kliping",
+              mainImage: item.image ? `${STORAGE_BASE_URL}/${item.image}` : "",
+              coverImage: item.image ? `${STORAGE_BASE_URL}/${item.image}` : getDefaultImage("e-kliping"),
+              content: item.content,
+              file_path: item.file_path,
+              timestamp: new Date(item.published_at).getTime(),
+              createdBy: "Administrator",
+            }));
+            allItems.push(...ekliping);
+          }
+        }
+
+        setItems(allItems);
       } catch (error) {
         console.error("Error fetching articles:", error);
+        setItems([]);
       } finally {
         setIsLoading(false);
       }
@@ -77,7 +131,7 @@ function PerpustakaanPage({ onViewContent }) {
 
   // Function untuk mendapatkan gambar default berdasarkan kategori
   const getDefaultImage = (category) => {
-    if (category === 'e-book') {
+    if (category === "e-book") {
       return "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=600&fit=crop";
     } else {
       return "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=400&h=600&fit=crop";
@@ -101,6 +155,22 @@ function PerpustakaanPage({ onViewContent }) {
       selectedCategory === "all" || item.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedData = filteredData.slice(startIndex, endIndex);
+
+  // Reset ke halaman 1 saat filter berubah
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedCategory]);
+
+  // Scroll to top saat ganti halaman
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [currentPage]);
 
   // Format tanggal
   const formatDate = (timestamp) => {
@@ -165,9 +235,10 @@ function PerpustakaanPage({ onViewContent }) {
               })}
             </div>
 
-            {/* Results count */}
+            {/* Pagination info */}
             <div className="text-gray-600 dark:text-gray-400">
-              Menampilkan {filteredData.length} dari {items.length} konten
+              Menampilkan {startIndex + 1}-{Math.min(endIndex, filteredData.length)} dari {filteredData.length} konten
+              {filteredData.length !== items.length && ` (${items.length} total)`}
             </div>
           </div>
         </div>
@@ -200,8 +271,9 @@ function PerpustakaanPage({ onViewContent }) {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredData.map((item) => (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {paginatedData.map((item) => (
               <div
                 key={item.id}
                 className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg transition-all duration-300 group"
@@ -240,18 +312,12 @@ function PerpustakaanPage({ onViewContent }) {
                     {item.category === "e-book" ? "oleh" : "dari"} {item.author}
                   </p>
 
-                  {/* Publish Date & Read Time */}
+                  {/* Publish Date */}
                   <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400 mb-3">
                     <span className="flex items-center gap-1">
                       <Calendar size={12} />
                       {formatDate(item.timestamp)}
                     </span>
-                    {item.readTime && (
-                      <span className="flex items-center gap-1">
-                        <Clock size={12} />
-                        {item.readTime}
-                      </span>
-                    )}
                   </div>
 
                   <p className="text-gray-600 dark:text-gray-300 text-sm mb-4 line-clamp-3">
@@ -259,7 +325,7 @@ function PerpustakaanPage({ onViewContent }) {
                   </p>
 
                   <button
-                    onClick={() => onViewContent(item)}
+                    onClick={() => handleViewContent(item)}
                     className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium text-sm transition-colors"
                   >
                     <Eye size={16} />
@@ -268,7 +334,45 @@ function PerpustakaanPage({ onViewContent }) {
                 </div>
               </div>
             ))}
-          </div>
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex justify-center items-center mt-8 space-x-2">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  ← Sebelumnya
+                </button>
+                
+                <div className="flex space-x-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`px-3 py-2 rounded-lg ${
+                        currentPage === page
+                          ? 'bg-blue-600 text-white'
+                          : 'border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Selanjutnya →
+                </button>
+              </div>
+            )}
+          </>
         )}
       </main>
 
@@ -277,64 +381,7 @@ function PerpustakaanPage({ onViewContent }) {
   );
 }
 
-// Component untuk membaca konten detail
-function ContentReader({ item, onBack, onSelectItem }) {
-  return (
-    <div className="min-h-screen">
-      {/* Render komponen yang sesuai berdasarkan kategori */}
-      {item.category === "e-book" ? (
-        <IsiEbook
-          item={item}
-          onBack={onBack}
-          onNavigateToLibrary={onBack}
-          onSelectBook={(book) => {
-            // Handle navigation ke book lain
-            if (onSelectItem) {
-              onSelectItem(book);
-            }
-          }}
-        />
-      ) : (
-        <IsiEkliping 
-          item={item} 
-          onBack={onBack}
-          onSelectArticle={(article) => {
-            // Handle navigation ke article lain
-            if (onSelectItem) {
-              onSelectItem(article);
-            }
-          }}
-        />
-      )}
-    </div>
-  );
-}
-
 // Main Component
 export default function Perpustakaan() {
-  const [currentView, setCurrentView] = useState("list"); // 'list' or 'reader'
-  const [selectedItem, setSelectedItem] = useState(null);
-
-  const handleViewContent = (item) => {
-    setSelectedItem(item);
-    setCurrentView("reader");
-  };
-
-  const handleSelectItem = (item) => {
-    setSelectedItem(item);
-    // Tetap di reader view, hanya ganti item
-  };
-
-  const handleBackToList = () => {
-    setCurrentView("list");
-    setSelectedItem(null);
-    // Reset URL back to main page
-    window.history.pushState({}, "", "/perpustakaan");
-  };
-
-  if (currentView === "reader" && selectedItem) {
-    return <ContentReader item={selectedItem} onBack={handleBackToList} onSelectItem={handleSelectItem} />;
-  }
-
-  return <PerpustakaanPage onViewContent={handleViewContent} />;
+  return <PerpustakaanPage />;
 }

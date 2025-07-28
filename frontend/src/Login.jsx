@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { User, Lock, Eye, EyeOff, Moon, Sun, CheckCircle, XCircle } from "lucide-react";
+import {
+  User,
+  Lock,
+  Eye,
+  EyeOff,
+  Moon,
+  Sun,
+  CheckCircle,
+  XCircle,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 // API Base URL
@@ -8,9 +17,10 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 // Custom Notification Component
 const Notification = ({ type, message, onClose }) => {
   const Icon = type === "success" ? CheckCircle : XCircle;
-  const colorClass = type === "success" 
-    ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-800 dark:text-green-200"
-    : "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-800 dark:text-red-200";
+  const colorClass =
+    type === "success"
+      ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-800 dark:text-green-200"
+      : "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-800 dark:text-red-200";
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -21,7 +31,9 @@ const Notification = ({ type, message, onClose }) => {
 
   return (
     <div className="fixed top-4 right-4 z-50 animate-in slide-in-from-top-2">
-      <div className={`flex items-center gap-3 p-4 border rounded-lg shadow-lg backdrop-blur-sm ${colorClass}`}>
+      <div
+        className={`flex items-center gap-3 p-4 border rounded-lg shadow-lg backdrop-blur-sm ${colorClass}`}
+      >
         <Icon size={20} />
         <span className="font-medium">{message}</span>
       </div>
@@ -98,17 +110,26 @@ export default function LoginPage() {
         localStorage.setItem("isLoggedIn", "true");
         localStorage.setItem("currentUser", JSON.stringify(userData));
 
-        showNotification("success", "Login berhasil! Mengalihkan ke dashboard...");
-        
+        showNotification(
+          "success",
+          "Login berhasil! Mengalihkan ke dashboard..."
+        );
+
         setTimeout(() => {
           navigate("/dashboard");
         }, 1000);
       } else {
-        showNotification("error", result.message || "Username atau password salah!");
+        showNotification(
+          "error",
+          result.message || "Username atau password salah!"
+        );
       }
     } catch (error) {
       console.error("Login error:", error);
-      showNotification("error", "Gagal terhubung ke server. Pastikan backend berjalan!");
+      showNotification(
+        "error",
+        "Gagal terhubung ke server. Pastikan backend berjalan!"
+      );
     }
 
     setIsLoading(false);
@@ -217,7 +238,9 @@ export default function LoginPage() {
               {/* Login Button */}
               <button
                 type="submit"
-                disabled={isLoading || !loginData.username || !loginData.password}
+                disabled={
+                  isLoading || !loginData.username || !loginData.password
+                }
                 className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-all duration-200 flex items-center justify-center gap-3 shadow-sm hover:shadow-md"
               >
                 {isLoading ? (

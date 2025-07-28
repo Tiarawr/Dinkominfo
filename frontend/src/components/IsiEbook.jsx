@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   Book,
   Calendar,
@@ -17,23 +18,56 @@ import Footer from "./Footer";
 // API Base URL
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api";
+const STORAGE_BASE_URL =
+  import.meta.env.VITE_STORAGE_BASE_URL || "http://localhost:8000/storage";
 
-export default function IsiEbook({
-  item,
-  onBack,
-  onNavigateToLibrary,
-  onSelectBook,
-  isDarkMode,
-}) {
+export default function IsiEbook() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [item, setItem] = useState(null);
   const [recommendedBooks, setRecommendedBooks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch individual ebook by ID
+  useEffect(() => {
+    const fetchEbook = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await fetch(`${API_BASE_URL}/v1/ebook`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const ebook = data.data.data?.find((book) => book.id === parseInt(id));
+          if (ebook) {
+            setItem(ebook);
+            // Scroll to top when content loads
+            window.scrollTo(0, 0);
+          } else {
+            navigate('/perpustakaan');
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching ebook:", error);
+        navigate('/perpustakaan');
+      }
+    };
+
+    if (id) {
+      fetchEbook();
+    }
+  }, [id, navigate]);
 
   // Fetch recommended books from backend
   useEffect(() => {
     const fetchRecommendedBooks = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await fetch(`http://localhost:8000/api/v1/ebook`, {
+        const response = await fetch(`${API_BASE_URL}/v1/ebook`, {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
@@ -43,10 +77,11 @@ export default function IsiEbook({
         if (response.ok) {
           const data = await response.json();
           // Ambil 3 e-book terbaru dan exclude item yang sedang dibaca
-          const ebooks = data.data.data
-            ?.filter(book => book.id !== item?.id)
-            .slice(0, 3) || [];
-          
+          const ebooks =
+            data.data.data
+              ?.filter((book) => book.id !== item?.id)
+              .slice(0, 3) || [];
+
           setRecommendedBooks(ebooks);
         }
       } catch (error) {
@@ -58,6 +93,23 @@ export default function IsiEbook({
 
     fetchRecommendedBooks();
   }, [item?.id]);
+
+  // Handler functions
+  const handleBack = () => {
+    navigate('/perpustakaan');
+  };
+
+  const handleNavigateToLibrary = () => {
+    navigate('/perpustakaan');
+  };
+
+  const handleReadRecommendation = (book) => {
+    navigate(`/ebooks/${book.id}`);
+  };
+
+  const handleViewAllBooks = () => {
+    navigate('/perpustakaan');
+  };
 
   const formatDate = (timestamp) => {
     return new Date(timestamp).toLocaleDateString("id-ID", {
@@ -98,46 +150,51 @@ export default function IsiEbook({
 
   const handleDownload = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       if (!token) {
-        alert('Silakan login terlebih dahulu');
+        alert("Silakan login terlebih dahulu");
         return;
       }
 
       // Jika ada file_path, download file asli dari backend
       if (item.file_path) {
-        const response = await fetch(`http://localhost:8000/api/v1/ebook/${item.id}/download`, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        });
+        const response = await fetch(
+          `${API_BASE_URL}/v1/ebook/${item.id}/download`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
         if (response.ok) {
           // Buat blob dan download
           const blob = await response.blob();
           const url = window.URL.createObjectURL(blob);
-          const a = document.createElement('a');
+          const a = document.createElement("a");
           a.href = url;
-          
+
           // Ambil nama file dari header response atau gunakan default
-          const contentDisposition = response.headers.get('content-disposition');
+          const contentDisposition = response.headers.get(
+            "content-disposition"
+          );
           let filename = `${item.title.replace(/[^a-z0-9]/gi, "_")}_ebook`;
-          
+
           if (contentDisposition) {
             const match = contentDisposition.match(/filename="(.+)"/);
             if (match) {
               filename = match[1];
             }
           }
-          
+
           a.download = filename;
           document.body.appendChild(a);
           a.click();
           document.body.removeChild(a);
           window.URL.revokeObjectURL(url);
         } else {
-          throw new Error('Gagal mengunduh file');
+          throw new Error("Gagal mengunduh file");
         }
       } else {
         // Fallback ke HTML download jika tidak ada file
@@ -162,9 +219,6 @@ export default function IsiEbook({
                 <p><strong>Dipublikasikan:</strong> ${formatDate(
                   item.published_at || item.timestamp
                 )}</p>
-                <p><strong>Estimasi Waktu Baca:</strong> ${
-                  item.readTime || "Tidak tersedia"
-                }</p>
               </div>
               <div class="content">
                 ${formatContentForDisplay(item.content)}
@@ -182,23 +236,37 @@ export default function IsiEbook({
         URL.revokeObjectURL(url);
       }
     } catch (error) {
-      console.error('Error downloading file:', error);
-      alert('Gagal mengunduh file');
+      console.error("Error downloading file:", error);
+      alert("Gagal mengunduh file");
     }
   };
 
-  const handleReadRecommendation = (book) => {
-    if (onSelectBook) {
-      // Menggunakan data asli dari backend tanpa modifikasi dummy
-      onSelectBook(book);
-    }
-  };
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">Memuat e-book...</p>
+        </div>
+      </div>
+    );
+  }
 
-  const handleViewAllBooks = () => {
-    if (onNavigateToLibrary) {
-      onNavigateToLibrary();
-    }
-  };
+  if (!item) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="text-center">
+          <p className="text-gray-600 dark:text-gray-400">E-book tidak ditemukan</p>
+          <button 
+            onClick={handleBack}
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Kembali ke Perpustakaan
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col min-h-screen transition-colors duration-300 dark:bg-[#181A2A] bg-white">
@@ -207,11 +275,11 @@ export default function IsiEbook({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between py-4">
             <button
-              onClick={onBack}
+              onClick={handleBack}
               className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
             >
               <ArrowLeft size={20} />
-              Kembali ke Dashboard
+              Kembali ke Perpustakaan
             </button>
 
             <ThemeToggle
@@ -264,36 +332,22 @@ export default function IsiEbook({
                       ? formatDate(item.created_at)
                       : "Tanggal tidak tersedia"}
                   </span>
-                  {(item.readTime || item.content) && (
-                    <>
-                      <span>•</span>
-                      <span className="flex items-center gap-1">
-                        <Clock size={14} />
-                        {item.readTime ||
-                          `${Math.ceil(
-                            (item.content?.length || 1000) / 200
-                          )} menit`}
-                      </span>
-                    </>
-                  )}
                 </div>
 
-                {/* Book Cover */}
-                <div className="mb-6">
-                  <img
-                    src={
-                      item.image_url ||
-                      item.mainImage ||
-                      "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=800&h=600&fit=crop"
-                    }
-                    alt={item.title}
-                    className="w-full max-h-96 object-cover rounded-lg shadow-lg"
-                    onError={(e) => {
-                      e.target.src =
-                        "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=800&h=600&fit=crop";
-                    }}
-                  />
-                </div>
+                {/* Book Cover - hanya tampil jika ada gambar */}
+                {(item.image_url || item.mainImage) && (
+                  <div className="mb-6">
+                    <img
+                      src={
+                        item.image_url ||
+                        item.mainImage ||
+                        `${STORAGE_BASE_URL}/${item.image}`
+                      }
+                      alt={item.title}
+                      className="w-full max-h-96 object-cover rounded-lg shadow-lg"
+                    />
+                  </div>
+                )}
 
                 {/* Synopsis */}
                 {item.description && (
@@ -377,11 +431,6 @@ export default function IsiEbook({
                       <p>
                         <strong>Kategori:</strong> E-Book Digital
                       </p>
-                      {item.readTime && (
-                        <p>
-                          <strong>Estimasi Waktu Baca:</strong> {item.readTime}
-                        </p>
-                      )}
                       <p>
                         <strong>Format:</strong> Digital HTML/PDF
                       </p>
@@ -401,13 +450,15 @@ export default function IsiEbook({
                     <Share2 size={16} />
                     Bagikan Buku
                   </button>
-                  <button
-                    onClick={handleDownload}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-                  >
-                    <Download size={16} />
-                    Unduh E-Book
-                  </button>
+                  {item.file_path && (
+                    <button
+                      onClick={handleDownload}
+                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                    >
+                      <Download size={16} />
+                      Unduh E-Book
+                    </button>
+                  )}
                 </div>
               </footer>
             </article>
@@ -435,22 +486,20 @@ export default function IsiEbook({
                       key={book.id}
                       className="border-b border-gray-200 dark:border-gray-700 pb-4 last:border-b-0 last:pb-0"
                     >
-                      {/* Book Cover */}
-                      <div className="mb-3">
-                        <img
-                          src={
-                            book.image_url ||
-                            book.mainImage ||
-                            "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=300&fit=crop"
-                          }
-                          alt={book.title}
-                          className="w-full h-32 object-cover rounded-lg shadow-sm"
-                          onError={(e) => {
-                            e.target.src =
-                              "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&h=300&fit=crop";
-                          }}
-                        />
-                      </div>
+                      {/* Book Cover - hanya tampil jika ada gambar */}
+                      {(book.image_url || book.mainImage || book.image) && (
+                        <div className="mb-3">
+                          <img
+                            src={
+                              book.image_url ||
+                              book.mainImage ||
+                              `${STORAGE_BASE_URL}/${book.image}`
+                            }
+                            alt={book.title}
+                            className="w-full h-32 object-cover rounded-lg shadow-sm"
+                          />
+                        </div>
+                      )}
 
                       <h4 className="font-medium text-gray-900 dark:text-white text-sm mb-2 line-clamp-2">
                         {book.title}
@@ -465,10 +514,6 @@ export default function IsiEbook({
                         {book.description || "Deskripsi tidak tersedia"}
                       </p>
                       <div className="flex items-center justify-between">
-                        <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
-                          <Clock size={10} />
-                          {book.readTime || `${book.reading_time || 5} menit baca`}
-                        </span>
                         <button
                           onClick={() => handleReadRecommendation(book)}
                           className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 flex items-center gap-1 hover:bg-blue-50 dark:hover:bg-blue-900/20 px-2 py-1 rounded transition-colors"
