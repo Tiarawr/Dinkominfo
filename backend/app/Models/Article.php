@@ -10,9 +10,16 @@ class Article extends Model
 {
     use HasFactory;
     protected $fillable = [
-        'title', 'description', 'content', 'image', 
-        'slug', 'type', 'is_featured', 'published_at',
-        'author', 'reading_time', 'file_path'
+        'title',
+        'description',
+        'content',
+        'image',
+        'slug',
+        'type',
+        'is_featured',
+        'published_at',
+        'author',
+        'file_path'
     ];
 
     protected $casts = [
@@ -24,7 +31,7 @@ class Article extends Model
     protected static function boot()
     {
         parent::boot();
-        
+
         static::creating(function ($article) {
             $article->slug = Str::slug($article->title);
         });
@@ -39,7 +46,7 @@ class Article extends Model
     public function scopePublished($query)
     {
         return $query->whereNotNull('published_at')
-                    ->where('published_at', '<=', now());
+            ->where('published_at', '<=', now());
     }
 
     // Format tanggal Indonesia

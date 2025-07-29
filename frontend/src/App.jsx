@@ -42,8 +42,8 @@ function AnimatedRoutes() {
         <Route path="/perpustakaan" element={<PerpustakaanApp />} />
         <Route path="/contact" element={<Kontak />} />
         <Route path="/about" element={<About />} />
-        <Route path="/e-book" element={<IsiEbook />} />
-        <Route path="/e-kliping" element={<IsiEkliping />} />
+        <Route path="/ebooks/:id" element={<IsiEbook />} />
+        <Route path="/ekliping/:id" element={<IsiEkliping />} />
       </Routes>
     </AnimatePresence>
   );

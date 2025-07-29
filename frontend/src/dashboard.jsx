@@ -42,6 +42,8 @@ import IsiEkliping from "./components/IsiEkliping";
 // API Base URL
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api";
+const STORAGE_BASE_URL =
+  import.meta.env.VITE_STORAGE_BASE_URL || "http://localhost:8000/storage";
 
 // Custom Notification Component
 const Notification = ({ type, message, onClose }) => {
@@ -185,7 +187,7 @@ export default function Dashboard() {
             Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
             "Content-Type": "application/json",
           },
-        }).catch(err => {
+        }).catch((err) => {
           console.log("E-book endpoint error:", err);
           return { ok: false, status: 500 };
         }),
@@ -194,7 +196,7 @@ export default function Dashboard() {
             Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
             "Content-Type": "application/json",
           },
-        }).catch(err => {
+        }).catch((err) => {
           console.log("E-kliping endpoint error:", err);
           return { ok: false, status: 500 };
         }),
@@ -213,21 +215,27 @@ export default function Dashboard() {
               author: item.author,
               description: item.description,
               category: "e-book",
-              readTime: `${item.reading_time || 5} menit baca`,
-              mainImage: item.image || "",
+              type: "e-book", // Tambah type untuk consistency
+              mainImage: item.image ? `${STORAGE_BASE_URL}/${item.image}` : "",
               content: item.content,
               file_path: item.file_path,
               timestamp: item.published_at,
               published_at: item.published_at, // Tambahan untuk component
               createdBy: "Admin",
             }));
+            
+            // Debug: Log mapping
+            console.log("Mapped ebook data:", ebooks.map(item => ({id: item.id, title: item.title, type: item.type})));
             allItems.push(...ebooks);
           }
         } catch (error) {
           console.error("Error parsing e-book response:", error);
         }
       } else {
-        console.log("E-book endpoint failed with status:", ebookResponse.status);
+        console.log(
+          "E-book endpoint failed with status:",
+          ebookResponse.status
+        );
       }
 
       // Process e-kliping with error handling
@@ -241,31 +249,39 @@ export default function Dashboard() {
               author: item.author,
               description: item.description,
               category: "e-kliping",
-              readTime: `${item.reading_time || 5} menit baca`,
-              mainImage: item.image || "",
+              type: "e-kliping", // Tambah type untuk consistency
+              mainImage: item.image ? `${STORAGE_BASE_URL}/${item.image}` : "",
               content: item.content,
               file_path: item.file_path,
               timestamp: item.published_at,
               published_at: item.published_at, // Tambahan untuk component
               createdBy: "Admin",
             }));
+            
+            // Debug: Log mapping
+            console.log("Mapped ekliping data:", ekliping.map(item => ({id: item.id, title: item.title, type: item.type})));
             allItems.push(...ekliping);
           }
         } catch (error) {
           console.error("Error parsing e-kliping response:", error);
         }
       } else {
-        console.log("E-kliping endpoint failed with status:", eklipingResponse.status);
+        console.log(
+          "E-kliping endpoint failed with status:",
+          eklipingResponse.status
+        );
       }
 
       // Always set items from API, even if empty
       setItems(allItems);
-      
+
       // Show notification if no endpoints worked
       if (!ebookResponse.ok && !eklipingResponse.ok) {
-        showNotification("warning", "Tidak dapat terhubung ke server. Pastikan backend Laravel berjalan!");
+        showNotification(
+          "warning",
+          "Tidak dapat terhubung ke server. Pastikan backend Laravel berjalan!"
+        );
       }
-      
     } catch (error) {
       console.error("Error loading data from API:", error);
       // Set empty array if API fails
@@ -281,8 +297,8 @@ export default function Dashboard() {
       author: "",
       description: "",
       category: "e-kliping",
-      readTime: "",
       mainImage: "",
+      imageFile: null,
       content: "",
       file: null,
     });
@@ -306,7 +322,8 @@ export default function Dashboard() {
       reader.onload = (e) => {
         setFormData((prev) => ({
           ...prev,
-          mainImage: e.target.result,
+          mainImage: e.target.result, // For preview
+          imageFile: file, // Store actual file for upload
         }));
       };
       reader.readAsDataURL(file);
@@ -393,18 +410,36 @@ export default function Dashboard() {
       submitData.append("author", formData.author);
       submitData.append("description", formData.description);
       submitData.append("content", formData.content);
-      submitData.append(
-        "reading_time",
-        parseInt(formData.readTime.replace(/\D/g, "")) || 5
-      );
       submitData.append("published_at", new Date().toISOString());
 
-      if (formData.mainImage) {
-        submitData.append("image", formData.mainImage);
+      if (formData.imageFile) {
+        // Validasi file image sebelum dikirim
+        console.log("Image file details:", {
+          name: formData.imageFile.name,
+          type: formData.imageFile.type,
+          size: formData.imageFile.size,
+          lastModified: formData.imageFile.lastModified
+        });
+        submitData.append("image", formData.imageFile);
       }
       if (formData.file) {
         submitData.append("file", formData.file);
       }
+
+      // Debug: Log what we're sending
+      console.log("Sending data to backend:", {
+        endpoint,
+        title: formData.title,
+        author: formData.author,
+        description: formData.description,
+        content: formData.content,
+        hasImage: !!formData.imageFile,
+        hasFile: !!formData.file,
+        imageType: formData.imageFile?.type,
+        fileType: formData.file?.type,
+        imageSize: formData.imageFile?.size,
+        fileSize: formData.file?.size,
+      });
 
       const response = await fetch(`${API_BASE_URL}/${endpoint}`, {
         method: "POST",
@@ -417,7 +452,9 @@ export default function Dashboard() {
       // Check if response is HTML (error page) instead of JSON
       const contentType = response.headers.get("content-type");
       if (!contentType || !contentType.includes("application/json")) {
-        throw new Error("Server mengembalikan halaman error. Pastikan backend Laravel berjalan!");
+        throw new Error(
+          "Server mengembalikan halaman error. Pastikan backend Laravel berjalan!"
+        );
       }
 
       const result = await response.json();
@@ -451,18 +488,24 @@ export default function Dashboard() {
     try {
       const endpoint =
         editingItem.type === "e-book" ? "v1/ebook" : "v2/ekliping";
+      
+      // Debug: Log what we're updating
+      console.log("Updating item:", {
+        id: editingItem.id,
+        type: editingItem.type,
+        endpoint: endpoint,
+        url: `${API_BASE_URL}/${endpoint}/${editingItem.id}`
+      });
+      
       const submitData = new FormData();
+      submitData.append("_method", "PUT"); // Laravel method spoofing
       submitData.append("title", formData.title);
       submitData.append("author", formData.author);
       submitData.append("description", formData.description);
       submitData.append("content", formData.content);
-      submitData.append(
-        "reading_time",
-        parseInt(formData.readTime.replace(/\D/g, "")) || 5
-      );
 
-      if (formData.mainImage) {
-        submitData.append("image", formData.mainImage);
+      if (formData.imageFile) {
+        submitData.append("image", formData.imageFile);
       }
       if (formData.file) {
         submitData.append("file", formData.file);
@@ -471,7 +514,7 @@ export default function Dashboard() {
       const response = await fetch(
         `${API_BASE_URL}/${endpoint}/${editingItem.id}`,
         {
-          method: "PUT",
+          method: "POST", // Changed from PUT to POST
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
           },
@@ -480,6 +523,13 @@ export default function Dashboard() {
       );
 
       const result = await response.json();
+      
+      // Debug: Log update response
+      console.log("Update response:", {
+        status: response.status,
+        ok: response.ok,
+        result: result
+      });
 
       if (response.ok && result.success) {
         await loadItemsFromAPI();
@@ -533,8 +583,8 @@ export default function Dashboard() {
       author: item.author || "",
       description: item.description,
       category: item.type || "e-kliping", // Backend uses 'type', frontend uses 'category'
-      readTime: item.reading_time ? `${item.reading_time} menit baca` : "",
-      mainImage: item.image || "",
+      mainImage: item.image ? `${STORAGE_BASE_URL}/${item.image}` : "",
+      imageFile: null, // Reset file upload
       content: item.content || "",
       file: null,
     });
@@ -543,11 +593,10 @@ export default function Dashboard() {
 
   // Navigate to detail view
   const handleViewDetail = (item) => {
-    setSelectedItem(item);
     if (item.category === "e-book") {
-      setCurrentView("ebook-detail");
+      navigate(`/ebooks/${item.id}`);
     } else {
-      setCurrentView("ekliping-detail");
+      navigate(`/ekliping/${item.id}`);
     }
   };
 
@@ -653,9 +702,12 @@ export default function Dashboard() {
     const enhancedItem = {
       ...selectedItem,
       createdBy: selectedItem.createdBy || "Admin",
-      timestamp: selectedItem.timestamp || selectedItem.published_at || new Date().toISOString(),
+      timestamp:
+        selectedItem.timestamp ||
+        selectedItem.published_at ||
+        new Date().toISOString(),
     };
-    
+
     return (
       <IsiEbook
         item={enhancedItem}
@@ -670,9 +722,12 @@ export default function Dashboard() {
     const enhancedItem = {
       ...selectedItem,
       createdBy: selectedItem.createdBy || "Admin",
-      timestamp: selectedItem.timestamp || selectedItem.published_at || new Date().toISOString(),
+      timestamp:
+        selectedItem.timestamp ||
+        selectedItem.published_at ||
+        new Date().toISOString(),
     };
-    
+
     return (
       <IsiEkliping
         item={enhancedItem}
@@ -1025,31 +1080,6 @@ export default function Dashboard() {
                     }
                   />
                 </div>
-              </div>
-
-              {/* Reading Time */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Waktu Baca (menit)
-                </label>
-                <input
-                  type="number"
-                  name="readTime"
-                  value={formData.readTime.replace(/\D/g, "")}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    handleInputChange({
-                      target: { name: "readTime", value: value ? `${value} menit baca` : "" }
-                    });
-                  }}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                  placeholder="5"
-                  min="1"
-                  max="300"
-                />
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  Estimasi waktu baca dalam menit (1-300 menit)
-                </p>
               </div>
 
               {/* Description */}
